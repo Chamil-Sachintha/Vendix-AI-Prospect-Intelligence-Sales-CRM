@@ -1,3 +1,19 @@
+export const PROSPECT_STATUSES = [
+  { id: "New", label: "New", color: "bg-slate-100 text-slate-700 border-slate-200", dot: "bg-slate-400" },
+  { id: "Researching", label: "Researching", color: "bg-sky-100 text-sky-800 border-sky-200", dot: "bg-sky-500" },
+  { id: "Ready to Contact", label: "Ready to Contact", color: "bg-blue-100 text-blue-800 border-blue-200", dot: "bg-blue-500" },
+  { id: "Contacted", label: "Contacted", color: "bg-indigo-100 text-indigo-800 border-indigo-200", dot: "bg-indigo-500" },
+  { id: "Awaiting Response", label: "Awaiting Response", color: "bg-purple-100 text-purple-800 border-purple-200", dot: "bg-purple-500" },
+  { id: "Responded", label: "Responded", color: "bg-violet-100 text-violet-800 border-violet-200", dot: "bg-violet-500" },
+  { id: "Interested", label: "Interested", color: "bg-teal-100 text-teal-800 border-teal-200", dot: "bg-teal-500" },
+  { id: "Meeting / Demo", label: "Meeting / Demo", color: "bg-amber-100 text-amber-800 border-amber-200", dot: "bg-amber-500" },
+  { id: "Proposal Sent", label: "Proposal Sent", color: "bg-orange-100 text-orange-800 border-orange-200", dot: "bg-orange-500" },
+  { id: "Won", label: "Won", color: "bg-emerald-100 text-emerald-800 border-emerald-200", dot: "bg-emerald-500" },
+  { id: "Lost", label: "Lost", color: "bg-rose-100 text-rose-800 border-rose-200", dot: "bg-rose-500" },
+  { id: "Nurturing", label: "Nurturing", color: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" },
+  { id: "Do Not Contact", label: "Do Not Contact", color: "bg-red-100 text-red-900 border-red-200", dot: "bg-red-700" },
+];
+
 export const BRAND_COLORS = {
   primary: "#0033BF",
   deepIndigo: "#3730A3",

@@ -10,37 +10,11 @@ export async function GET(
     const company = await prisma.company.findUnique({
       where: { id },
       include: {
-        assignedOwner: { select: { id: true, name: true, email: true, avatar: true } },
         contacts: {
           orderBy: [{ isPrimary: "desc" }, { createdAt: "desc" }],
         },
         softwareRecords: {
           orderBy: { createdAt: "desc" },
-        },
-        intentSignals: {
-          orderBy: { dateObserved: "desc" },
-        },
-        qualification: true,
-        opportunities: {
-          include: {
-            stage: true,
-            primaryContact: { select: { id: true, fullName: true } },
-          },
-          orderBy: { createdAt: "desc" },
-        },
-        outreachActivities: {
-          include: {
-            contact: { select: { id: true, fullName: true } },
-            owner: { select: { id: true, name: true } },
-          },
-          orderBy: { createdAt: "desc" },
-        },
-        tasks: {
-          include: {
-            assignedOwner: { select: { id: true, name: true } },
-            contact: { select: { id: true, fullName: true } },
-          },
-          orderBy: [{ isCompleted: "asc" }, { dueDate: "asc" }],
         },
         timelineEvents: {
           orderBy: { createdAt: "desc" },
@@ -49,13 +23,13 @@ export async function GET(
     });
 
     if (!company) {
-      return NextResponse.json({ error: "Company not found" }, { status: 404 });
+      return NextResponse.json({ error: "Prospect not found" }, { status: 404 });
     }
 
     return NextResponse.json(company);
   } catch (error) {
     console.error("Company detail GET error:", error);
-    return NextResponse.json({ error: "Failed to load company" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to load prospect" }, { status: 500 });
   }
 }
 
@@ -67,54 +41,34 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
+    const existing = await prisma.company.findUnique({
+      where: { id },
+      include: { contacts: { where: { isPrimary: true } } },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Prospect not found" }, { status: 404 });
+    }
+
     const {
       name,
-      tradingName,
-      registrationNo,
       website,
-      linkedinUrl,
       industry,
-      subIndustry,
       country,
-      city,
-      operatingRegions,
-      hqAddress,
-      yearEstablished,
-      description,
-      parentCompany,
-      subsidiaries,
-      slraMember,
-      source,
-      assignedOwnerId,
-      employeeCount,
-      employeeRange,
-      annualRevenue,
-      revenueRange,
-      branchesCount,
-      distributorsCount,
-      fieldSalesRepsCount,
-      countriesServed,
-      distributionModel,
-      mainProducts,
-      customerSegments,
-      geographicCoverage,
-      businessMaturity,
-      sizeCategory,
-      isEstimated,
-      estimatesSource,
-      hasFieldSalesTeam,
-      sellsThroughDistributors,
-      regularRetailVisits,
-      vanSalesOrPreSales,
-      managesTerritoriesRoutes,
-      orderTakingInField,
-      managesCollectionsCash,
-      distributesPhysicalProducts,
-      requiresOfflineMobile,
-      usesExistingSoftware,
-      operationalChallenges,
-      sfaComplexity,
-      qualificationStatus,
+      companySize,
+      currentSfaProvider,
+      currentSfaStatus,
+      sfaSourceUrl,
+      prospectStatus,
+      lastContactedAt,
+      nextFollowUpDate,
+      notes,
+      newDatedNote,
+      decisionMakerName,
+      decisionMakerJobTitle,
+      contactEmail,
+      contactPhone,
+      linkedinUrl,
       actorName = "User",
     } = body;
 
@@ -122,70 +76,77 @@ export async function PUT(
       where: { id },
       data: {
         name: name ? name.trim() : undefined,
-        tradingName,
-        registrationNo,
-        website,
-        linkedinUrl,
-        industry,
-        subIndustry,
-        country,
-        city,
-        operatingRegions,
-        hqAddress,
-        yearEstablished: yearEstablished ? parseInt(yearEstablished, 10) : undefined,
-        description,
-        parentCompany,
-        subsidiaries,
-        slraMember: slraMember !== undefined ? Boolean(slraMember) : undefined,
-        source,
+        website: website !== undefined ? (website?.trim() || null) : undefined,
+        industry: industry || undefined,
+        country: country || undefined,
+        employeeRange: companySize !== undefined ? companySize : undefined,
+        sizeCategory: companySize !== undefined ? companySize : undefined,
+        currentSfaProvider: currentSfaProvider !== undefined ? currentSfaProvider : undefined,
+        currentSfaStatus: currentSfaStatus !== undefined ? currentSfaStatus : undefined,
+        sfaSourceUrl: sfaSourceUrl !== undefined ? sfaSourceUrl : undefined,
+        prospectStatus: prospectStatus || undefined,
+        lastContactedAt: lastContactedAt !== undefined ? (lastContactedAt ? new Date(lastContactedAt) : null) : undefined,
+        nextFollowUpDate: nextFollowUpDate !== undefined ? (nextFollowUpDate ? new Date(nextFollowUpDate) : null) : undefined,
+        notes: notes !== undefined ? (notes?.trim() || null) : undefined,
         lastVerifiedDate: new Date(),
-        assignedOwnerId: assignedOwnerId !== undefined ? (assignedOwnerId || null) : undefined,
-        employeeCount: employeeCount ? parseInt(employeeCount, 10) : undefined,
-        employeeRange,
-        annualRevenue: annualRevenue ? parseFloat(annualRevenue) : undefined,
-        revenueRange,
-        branchesCount: branchesCount ? parseInt(branchesCount, 10) : undefined,
-        distributorsCount: distributorsCount ? parseInt(distributorsCount, 10) : undefined,
-        fieldSalesRepsCount: fieldSalesRepsCount ? parseInt(fieldSalesRepsCount, 10) : undefined,
-        countriesServed: countriesServed ? parseInt(countriesServed, 10) : undefined,
-        distributionModel,
-        mainProducts,
-        customerSegments,
-        geographicCoverage,
-        businessMaturity,
-        sizeCategory,
-        isEstimated: isEstimated !== undefined ? Boolean(isEstimated) : undefined,
-        estimatesSource,
-        estimatesVerifiedAt: isEstimated ? new Date() : undefined,
-        hasFieldSalesTeam,
-        sellsThroughDistributors,
-        regularRetailVisits,
-        vanSalesOrPreSales,
-        managesTerritoriesRoutes,
-        orderTakingInField,
-        managesCollectionsCash,
-        distributesPhysicalProducts,
-        requiresOfflineMobile,
-        usesExistingSoftware,
-        operationalChallenges,
-        sfaComplexity,
-        qualificationStatus,
       },
     });
 
-    await prisma.timelineEvent.create({
-      data: {
-        companyId: id,
-        actorName,
-        eventType: "COMPANY_UPDATED",
-        description: `Company details updated. Status: ${updated.qualificationStatus}.`,
-      },
-    });
+    // Handle primary contact update/creation if fields provided
+    if (decisionMakerName !== undefined) {
+      const primaryContact = existing.contacts?.[0];
+      if (primaryContact) {
+        await prisma.contact.update({
+          where: { id: primaryContact.id },
+          data: {
+            fullName: decisionMakerName ? decisionMakerName.trim() : primaryContact.fullName,
+            jobTitle: decisionMakerJobTitle !== undefined ? decisionMakerJobTitle?.trim() : primaryContact.jobTitle,
+            businessEmail: contactEmail !== undefined ? (contactEmail?.trim() || null) : primaryContact.businessEmail,
+            businessPhone: contactPhone !== undefined ? (contactPhone?.trim() || null) : primaryContact.businessPhone,
+            linkedinUrl: linkedinUrl !== undefined ? (linkedinUrl?.trim() || null) : primaryContact.linkedinUrl,
+          },
+        });
+      } else if (decisionMakerName && decisionMakerName.trim()) {
+        await prisma.contact.create({
+          data: {
+            companyId: id,
+            fullName: decisionMakerName.trim(),
+            jobTitle: decisionMakerJobTitle?.trim() || "Decision-Maker",
+            businessEmail: contactEmail?.trim() || null,
+            businessPhone: contactPhone?.trim() || null,
+            linkedinUrl: linkedinUrl?.trim() || null,
+            isPrimary: true,
+            isVerified: true,
+          },
+        });
+      }
+    }
+
+    // Add dated note to timeline if provided
+    if (newDatedNote && newDatedNote.trim()) {
+      await prisma.timelineEvent.create({
+        data: {
+          companyId: id,
+          actorName,
+          eventType: "INTERACTION_NOTE",
+          description: newDatedNote.trim(),
+        },
+      });
+    } else if (prospectStatus && prospectStatus !== existing.prospectStatus) {
+      await prisma.timelineEvent.create({
+        data: {
+          companyId: id,
+          actorName,
+          eventType: "STATUS_CHANGED",
+          description: `Status changed from "${existing.prospectStatus}" to "${prospectStatus}".`,
+        },
+      });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {
     console.error("Company PUT error:", error);
-    return NextResponse.json({ error: "Failed to update company" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update prospect" }, { status: 500 });
   }
 }
 
@@ -198,14 +159,14 @@ export async function DELETE(
     const company = await prisma.company.findUnique({ where: { id }, select: { name: true } });
 
     if (!company) {
-      return NextResponse.json({ error: "Company not found" }, { status: 404 });
+      return NextResponse.json({ error: "Prospect not found" }, { status: 404 });
     }
 
     await prisma.company.delete({ where: { id } });
 
-    return NextResponse.json({ success: true, message: `Company ${company.name} deleted successfully.` });
+    return NextResponse.json({ success: true, message: `Prospect ${company.name} deleted successfully.` });
   } catch (error) {
     console.error("Company DELETE error:", error);
-    return NextResponse.json({ error: "Failed to delete company" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete prospect" }, { status: 500 });
   }
 }

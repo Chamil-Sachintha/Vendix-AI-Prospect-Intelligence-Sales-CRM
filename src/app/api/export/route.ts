@@ -2,145 +2,94 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import Papa from "papaparse";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const entity = searchParams.get("entity") || "companies"; // companies, contacts, software, intent, opportunities, activities
+    const search = searchParams.get("search")?.trim() || "";
+    const status = searchParams.get("status");
+    const industry = searchParams.get("industry");
+    const country = searchParams.get("country");
+    const sfaProvider = searchParams.get("sfaProvider");
+    const companySize = searchParams.get("companySize");
+    const followUpsDue = searchParams.get("followUpsDue");
 
-    let csvData: any[] = [];
-    let filename = `vendix_${entity}_${new Date().toISOString().slice(0, 10)}.csv`;
+    const where: any = {};
 
-    switch (entity) {
-      case "companies": {
-        const companies = await prisma.company.findMany({
-          orderBy: { name: "asc" },
-          include: {
-            assignedOwner: { select: { name: true } },
-            contacts: { where: { isPrimary: true }, select: { fullName: true, businessEmail: true } },
-            softwareRecords: { where: { category: "SFA" }, select: { productName: true, vendorName: true, status: true } },
-          },
-        });
-
-        csvData = companies.map((c) => ({
-          "Company Name": c.name,
-          "Trading Name": c.tradingName || "",
-          "Industry": c.industry,
-          "Sub-Industry": c.subIndustry || "",
-          "Country": c.country,
-          "City": c.city || "",
-          "Website": c.website || "",
-          "Employee Count": c.employeeCount || "",
-          "Field Sales Reps": c.fieldSalesRepsCount || "",
-          "Distribution Model": c.distributionModel || "",
-          "SLRA Member": c.slraMember ? "Yes" : "No",
-          "Current SFA Product": c.softwareRecords[0]?.productName || "",
-          "Current SFA Vendor": c.softwareRecords[0]?.vendorName || "",
-          "SFA Status": c.softwareRecords[0]?.status || "",
-          "Intent Score": c.intentScore,
-          "Intent Level": c.intentLevel,
-          "Qualification Status": c.qualificationStatus,
-          "Primary Contact": c.contacts[0]?.fullName || "",
-          "Primary Email": c.contacts[0]?.businessEmail || "",
-          "Owner": c.assignedOwner?.name || "",
-        }));
-        break;
-      }
-
-      case "contacts": {
-        const contacts = await prisma.contact.findMany({
-          orderBy: { fullName: "asc" },
-          include: { company: { select: { name: true } } },
-        });
-
-        csvData = contacts.map((ct) => ({
-          "Full Name": ct.fullName,
-          "Job Title": ct.jobTitle,
-          "Department": ct.department || "",
-          "Seniority": ct.seniorityLevel || "",
-          "Purchasing Role": ct.roleInPurchasing,
-          "Company": ct.company.name,
-          "Business Email": ct.businessEmail || "",
-          "Business Phone": ct.businessPhone || "",
-          "LinkedIn URL": ct.linkedinUrl || "",
-          "Verified": ct.isVerified ? "Yes" : "No",
-          "Primary Contact": ct.isPrimary ? "Yes" : "No",
-        }));
-        break;
-      }
-
-      case "software": {
-        const records = await prisma.softwareRecord.findMany({
-          include: { company: { select: { name: true } } },
-          orderBy: { createdAt: "desc" },
-        });
-
-        csvData = records.map((s) => ({
-          "Company": s.company.name,
-          "Category": s.category,
-          "Product Name": s.productName,
-          "Vendor Name": s.vendorName,
-          "Deployment Type": s.deploymentType,
-          "Status": s.status,
-          "Implementation Year": s.implementationYear || "",
-          "Confidence": s.confidence,
-          "Evidence Source URL": s.evidenceUrl || "",
-          "Evidence Description": s.evidenceDescription || "",
-        }));
-        break;
-      }
-
-      case "intent": {
-        const signals = await prisma.intentSignal.findMany({
-          include: { company: { select: { name: true } } },
-          orderBy: { dateObserved: "desc" },
-        });
-
-        csvData = signals.map((sig) => ({
-          "Company": sig.company.name,
-          "Category": sig.category,
-          "Description": sig.description,
-          "Date Observed": sig.dateObserved.toISOString().slice(0, 10),
-          "Source Type": sig.sourceType || "",
-          "Strength": sig.strength,
-          "Confidence": sig.confidence,
-          "Score Contribution": sig.scoreContribution,
-          "Verification Status": sig.verificationStatus,
-        }));
-        break;
-      }
-
-      case "opportunities": {
-        const opps = await prisma.opportunity.findMany({
-          include: {
-            company: { select: { name: true } },
-            stage: { select: { name: true } },
-            owner: { select: { name: true } },
-          },
-          orderBy: { createdAt: "desc" },
-        });
-
-        csvData = opps.map((o) => ({
-          "Opportunity Name": o.name,
-          "Company": o.company.name,
-          "Sales Stage": o.stage.name,
-          "Estimated ACV": o.estimatedAcv,
-          "Currency": o.currency,
-          "Probability (%)": o.probability,
-          "Potential Users": o.potentialUsers || "",
-          "Expected Close Date": o.expectedCloseDate ? o.expectedCloseDate.toISOString().slice(0, 10) : "",
-          "Competitor Evaluated": o.competitorEvaluated || "",
-          "Owner": o.owner?.name || "",
-        }));
-        break;
-      }
-
-      default:
-        return NextResponse.json({ error: "Invalid entity type" }, { status: 400 });
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { industry: { contains: search } },
+        { country: { contains: search } },
+        { currentSfaProvider: { contains: search } },
+        { notes: { contains: search } },
+        { contacts: { some: { fullName: { contains: search } } } },
+        { contacts: { some: { businessEmail: { contains: search } } } },
+      ];
     }
 
+    if (status && status !== "ALL") {
+      if (status === "Contacted / Awaiting Response") {
+        where.prospectStatus = { in: ["Contacted", "Awaiting Response"] };
+      } else if (status.includes(",")) {
+        where.prospectStatus = { in: status.split(",").map((s) => s.trim()) };
+      } else {
+        where.prospectStatus = status;
+      }
+    }
+    if (industry && industry !== "ALL") where.industry = { contains: industry };
+    if (country && country !== "ALL") where.country = country;
+    if (sfaProvider && sfaProvider !== "ALL") {
+      where.OR = [
+        { currentSfaProvider: { contains: sfaProvider } },
+        { softwareRecords: { some: { productName: { contains: sfaProvider } } } },
+      ];
+    }
+    if (companySize && companySize !== "ALL") {
+      where.OR = [
+        { sizeCategory: companySize },
+        { employeeRange: { contains: companySize } },
+      ];
+    }
+    if (followUpsDue === "true") {
+      const now = new Date();
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      where.nextFollowUpDate = { lte: endOfToday };
+    }
+
+    const companies = await prisma.company.findMany({
+      where,
+      orderBy: { name: "asc" },
+      include: {
+        contacts: {
+          where: { isPrimary: true },
+          take: 1,
+        },
+      },
+    });
+
+    const csvData = companies.map((c) => {
+      const contact = c.contacts?.[0];
+      return {
+        "Company Name": c.name,
+        "Industry": c.industry || "",
+        "Country": c.country || "",
+        "Website": c.website || "",
+        "Company Size": c.employeeRange || c.sizeCategory || "",
+        "Current SFA Provider": c.currentSfaProvider || "",
+        "Current Software Status": c.currentSfaStatus || "",
+        "Decision-Maker Name": contact?.fullName || "",
+        "Decision-Maker Job Title": contact?.jobTitle || "",
+        "Contact Email": contact?.businessEmail || "",
+        "Contact Phone": contact?.businessPhone || "",
+        "Prospect Status": c.prospectStatus || "New",
+        "Last Contacted": c.lastContactedAt ? c.lastContactedAt.toISOString().slice(0, 10) : "",
+        "Next Follow-up": c.nextFollowUpDate ? c.nextFollowUpDate.toISOString().slice(0, 10) : "",
+        "Notes": c.notes || "",
+      };
+    });
+
     const csvString = Papa.unparse(csvData);
+    const filename = `vendix_prospects_${new Date().toISOString().slice(0, 10)}.csv`;
 
     return new NextResponse(csvString, {
       headers: {

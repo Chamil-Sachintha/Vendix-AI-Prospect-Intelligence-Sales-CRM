@@ -4,18 +4,11 @@ import prisma from "@/lib/prisma";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { mode, records, duplicateStrategy = "skip" } = body;
-    // mode: "preview" or "execute"
-    // duplicateStrategy: "skip" | "update"
+    const { records, duplicateStrategy = "skip" } = body;
 
     if (!records || !Array.isArray(records) || records.length === 0) {
       return NextResponse.json({ error: "No records supplied for import" }, { status: 400 });
     }
-
-    // Validation & Duplicate Checking
-    const validatedRecords: any[] = [];
-    let duplicatesFound = 0;
-    let errorsFound = 0;
 
     const existingCompanies = await prisma.company.findMany({
       select: { id: true, name: true },
@@ -24,80 +17,52 @@ export async function POST(request: Request) {
       existingCompanies.map((c) => [c.name.toLowerCase().trim(), c.id])
     );
 
-    for (let i = 0; i < records.length; i++) {
-      const row = records[i];
-      const errors: string[] = [];
-
-      const name = (row.name || row["Company Name"] || row.company || "").toString().trim();
-      if (!name) {
-        errors.push("Missing company name");
-      }
-
-      const existingId = companyNameMap.get(name.toLowerCase());
-      const isDuplicate = Boolean(existingId);
-      if (isDuplicate) duplicatesFound++;
-      if (errors.length > 0) errorsFound++;
-
-      validatedRecords.push({
-        index: i + 1,
-        name,
-        tradingName: (row.tradingName || row["Trading Name"] || "").toString().trim(),
-        industry: (row.industry || row["Industry"] || "FMCG & Retail").toString().trim(),
-        country: (row.country || row["Country"] || "Sri Lanka").toString().trim(),
-        city: (row.city || row["City"] || "").toString().trim(),
-        website: (row.website || row["Website"] || "").toString().trim(),
-        employeeCount: parseInt(row.employeeCount || row["Employee Count"] || "0", 10) || null,
-        fieldSalesRepsCount: parseInt(row.fieldSalesRepsCount || row["Field Sales Reps"] || "0", 10) || null,
-        distributionModel: (row.distributionModel || row["Distribution Model"] || "").toString().trim(),
-        slraMember: row.slraMember === true || row["SLRA Member"] === "Yes",
-        competitorSfa: (row.competitorSfa || row["Current SFA Product"] || "").toString().trim(),
-        competitorVendor: (row.competitorVendor || row["Current SFA Vendor"] || "").toString().trim(),
-        contactName: (row.contactName || row["Primary Contact"] || "").toString().trim(),
-        contactEmail: (row.contactEmail || row["Primary Email"] || "").toString().trim(),
-        isDuplicate,
-        existingId,
-        errors,
-      });
-    }
-
-    if (mode === "preview") {
-      return NextResponse.json({
-        totalRecords: records.length,
-        duplicatesFound,
-        errorsFound,
-        preview: validatedRecords.slice(0, 20),
-      });
-    }
-
-    // Execute Import
     let importedCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
 
-    for (const rec of validatedRecords) {
-      if (rec.errors.length > 0) {
+    for (const row of records) {
+      const name = (row.name || row["Company Name"] || row.company || "").toString().trim();
+      if (!name) {
         skippedCount++;
         continue;
       }
 
-      if (rec.isDuplicate) {
+      const existingId = companyNameMap.get(name.toLowerCase());
+      const website = (row.website || row["Website"] || "").toString().trim();
+      const industry = (row.industry || row["Industry"] || "FMCG & Retail").toString().trim();
+      const country = (row.country || row["Country"] || "Sri Lanka").toString().trim();
+      const companySize = (row.companySize || row["Company Size"] || "").toString().trim();
+      const currentSfaProvider = (row.currentSfaProvider || row["Current SFA Provider"] || row["Current SFA"] || "").toString().trim();
+      const currentSfaStatus = (row.currentSfaStatus || row["Current Software Status"] || "Confirmed").toString().trim();
+      const prospectStatus = (row.prospectStatus || row["Prospect Status"] || "New").toString().trim();
+      const notes = (row.notes || row["Notes"] || "").toString().trim();
+      const nextFollowUpDate = row["Next Follow-up"] ? new Date(row["Next Follow-up"]) : null;
+      const lastContactedAt = row["Last Contacted"] ? new Date(row["Last Contacted"]) : null;
+
+      const contactName = (row.contactName || row["Decision-Maker Name"] || row["Contact Name"] || "").toString().trim();
+      const contactTitle = (row.contactTitle || row["Decision-Maker Job Title"] || row["Job Title"] || "Decision-Maker").toString().trim();
+      const contactEmail = (row.contactEmail || row["Contact Email"] || row["Email"] || "").toString().trim();
+      const contactPhone = (row.contactPhone || row["Contact Phone"] || row["Phone"] || "").toString().trim();
+
+      if (existingId) {
         if (duplicateStrategy === "skip") {
           skippedCount++;
           continue;
-        } else if (duplicateStrategy === "update" && rec.existingId) {
+        } else if (duplicateStrategy === "update") {
           await prisma.company.update({
-            where: { id: rec.existingId },
+            where: { id: existingId },
             data: {
-              tradingName: rec.tradingName || undefined,
-              industry: rec.industry || undefined,
-              country: rec.country || undefined,
-              city: rec.city || undefined,
-              website: rec.website || undefined,
-              employeeCount: rec.employeeCount || undefined,
-              fieldSalesRepsCount: rec.fieldSalesRepsCount || undefined,
-              distributionModel: rec.distributionModel || undefined,
-              slraMember: rec.slraMember,
-              lastVerifiedDate: new Date(),
+              website: website || undefined,
+              industry: industry || undefined,
+              country: country || undefined,
+              employeeRange: companySize || undefined,
+              currentSfaProvider: currentSfaProvider || undefined,
+              currentSfaStatus: currentSfaStatus || undefined,
+              prospectStatus: prospectStatus || undefined,
+              notes: notes || undefined,
+              nextFollowUpDate: nextFollowUpDate || undefined,
+              lastContactedAt: lastContactedAt || undefined,
             },
           });
           updatedCount++;
@@ -105,68 +70,39 @@ export async function POST(request: Request) {
         }
       }
 
-      // Create new company
       const company = await prisma.company.create({
         data: {
-          name: rec.name,
-          tradingName: rec.tradingName || null,
-          industry: rec.industry,
-          country: rec.country,
-          city: rec.city || null,
-          website: rec.website || null,
-          employeeCount: rec.employeeCount,
-          fieldSalesRepsCount: rec.fieldSalesRepsCount,
-          distributionModel: rec.distributionModel || null,
-          slraMember: rec.slraMember,
+          name,
+          website: website || null,
+          industry,
+          country,
+          employeeRange: companySize || null,
+          sizeCategory: companySize || "MEDIUM",
+          currentSfaProvider: currentSfaProvider || null,
+          currentSfaStatus: currentSfaStatus || "Confirmed",
+          prospectStatus: prospectStatus || "New",
+          notes: notes || null,
+          nextFollowUpDate,
+          lastContactedAt,
           source: "CSV Import",
-          lastVerifiedDate: new Date(),
-          qualification: {
-            create: {
-              potentialUsers: rec.fieldSalesRepsCount,
-            },
-          },
         },
       });
 
-      // If competitor SFA provided, add software record
-      if (rec.competitorSfa) {
-        await prisma.softwareRecord.create({
-          data: {
-            companyId: company.id,
-            category: "SFA",
-            productName: rec.competitorSfa,
-            vendorName: rec.competitorVendor || rec.competitorSfa,
-            deploymentType: "CLOUD",
-            status: "CURRENTLY_USING",
-            confidence: "UNVERIFIED",
-            evidenceDescription: "Logged from bulk CSV import",
-          },
-        });
-      }
-
-      // If contact provided, add contact
-      if (rec.contactName) {
+      if (contactName) {
         await prisma.contact.create({
           data: {
             companyId: company.id,
-            fullName: rec.contactName,
-            jobTitle: "Sales Leader / Contact",
-            businessEmail: rec.contactEmail || null,
+            fullName: contactName,
+            jobTitle: contactTitle,
+            businessEmail: contactEmail || null,
+            businessPhone: contactPhone || null,
             isPrimary: true,
-            source: "CSV Import",
+            isVerified: true,
           },
         });
       }
 
-      await prisma.timelineEvent.create({
-        data: {
-          companyId: company.id,
-          actorName: "Import System",
-          eventType: "COMPANY_CREATED",
-          description: `Company imported via CSV.`,
-        },
-      });
-
+      companyNameMap.set(name.toLowerCase(), company.id);
       importedCount++;
     }
 
@@ -175,10 +111,10 @@ export async function POST(request: Request) {
       importedCount,
       updatedCount,
       skippedCount,
-      totalProcessed: validatedRecords.length,
+      totalProcessed: records.length,
     });
   } catch (error) {
-    console.error("Import POST error:", error);
-    return NextResponse.json({ error: "Failed to process import" }, { status: 500 });
+    console.error("Import error:", error);
+    return NextResponse.json({ error: "Failed to process CSV import" }, { status: 500 });
   }
 }
