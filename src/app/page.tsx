@@ -576,89 +576,85 @@ function ProspectsContent() {
         </div>
       )}
 
-      {/* Search & Filter Bar */}
-      <div className="bg-white rounded-2xl p-3 border border-slate-200/80 shadow-xs mb-4 space-y-3">
-        <div className="flex flex-col lg:flex-row items-center gap-2">
-          {/* Search bar */}
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search by company, industry, country, SFA software, decision-maker, or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8.5 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-            />
-          </div>
+      {/* Search & Filter Bar (Single Unified Row) */}
+      <div className="bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-xs mb-4 flex flex-wrap items-center gap-2 text-xs">
+        {/* Search bar */}
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by company, industry, country, SFA software, decision-maker, or email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-8.5 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+          />
         </div>
 
-        {/* Dropdown Filters Row */}
-        <div className="flex flex-wrap items-center gap-2 text-xs pt-1 border-t border-slate-100">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="Contacted / Awaiting Response">Contacted / Awaiting Response</option>
-            {PROSPECT_STATUSES.map((st) => (
-              <option key={st.id} value={st.id}>
-                {st.label}
-              </option>
-            ))}
-          </select>
+        {/* Dropdown Filters */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+        >
+          <option value="ALL">All Statuses</option>
+          <option value="Contacted / Awaiting Response">Contacted / Awaiting Response</option>
+          {PROSPECT_STATUSES.map((st) => (
+            <option key={st.id} value={st.id}>
+              {st.label}
+            </option>
+          ))}
+        </select>
 
-          <select
-            value={industryFilter}
-            onChange={(e) => setIndustryFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none"
-          >
-            <option value="ALL">All Industries</option>
-            <option value="FMCG">FMCG & Consumer Goods</option>
-            <option value="Beverages">Beverages & Soft Drinks</option>
-            <option value="Retail">Retail & Durable Goods</option>
-            <option value="Manufacturing">Manufacturing & Distribution</option>
-          </select>
+        <select
+          value={industryFilter}
+          onChange={(e) => setIndustryFilter(e.target.value)}
+          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+        >
+          <option value="ALL">All Industries</option>
+          <option value="FMCG">FMCG & Consumer Goods</option>
+          <option value="Beverages">Beverages & Soft Drinks</option>
+          <option value="Retail">Retail & Durable Goods</option>
+          <option value="Manufacturing">Manufacturing & Distribution</option>
+        </select>
 
-          <select
-            value={countryFilter}
-            onChange={(e) => setCountryFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none"
-          >
-            <option value="ALL">All Countries</option>
-            <option value="Sri Lanka">Sri Lanka</option>
-            <option value="United Arab Emirates">United Arab Emirates</option>
-            <option value="Malaysia">Malaysia</option>
-            <option value="Kenya">Kenya</option>
-          </select>
+        <select
+          value={countryFilter}
+          onChange={(e) => setCountryFilter(e.target.value)}
+          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+        >
+          <option value="ALL">All Countries</option>
+          <option value="Sri Lanka">Sri Lanka</option>
+          <option value="United Arab Emirates">United Arab Emirates</option>
+          <option value="Malaysia">Malaysia</option>
+          <option value="Kenya">Kenya</option>
+        </select>
 
-          <select
-            value={sfaFilter}
-            onChange={(e) => setSfaFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none"
-          >
-            <option value="ALL">All SFA Software</option>
-            <option value="Bizom">Bizom</option>
-            <option value="FieldAssist">FieldAssist</option>
-            <option value="Repsly">Repsly</option>
-            <option value="In-House">Legacy / In-House SFA</option>
-          </select>
+        <select
+          value={sfaFilter}
+          onChange={(e) => setSfaFilter(e.target.value)}
+          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+        >
+          <option value="ALL">All SFA Software</option>
+          <option value="Bizom">Bizom</option>
+          <option value="FieldAssist">FieldAssist</option>
+          <option value="Repsly">Repsly</option>
+          <option value="In-House">Legacy / In-House SFA</option>
+        </select>
 
-          {(search ||
-            statusFilter !== "ALL" ||
-            industryFilter !== "ALL" ||
-            countryFilter !== "ALL" ||
-            sfaFilter !== "ALL" ||
-            sizeFilter !== "ALL" ||
-            followUpsDueOnly) && (
-            <button
-              onClick={resetFilters}
-              className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline px-1"
-            >
-              Reset Filters
-            </button>
-          )}
-        </div>
+        {(search ||
+          statusFilter !== "ALL" ||
+          industryFilter !== "ALL" ||
+          countryFilter !== "ALL" ||
+          sfaFilter !== "ALL" ||
+          sizeFilter !== "ALL" ||
+          followUpsDueOnly) && (
+          <button
+            onClick={resetFilters}
+            className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline px-1 shrink-0"
+          >
+            Reset Filters
+          </button>
+        )}
       </div>
 
       {/* Main Prospects Table */}
