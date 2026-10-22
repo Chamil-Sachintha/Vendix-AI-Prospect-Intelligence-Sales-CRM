@@ -664,7 +664,7 @@ function ProspectsContent() {
             <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 {visibleColumns.logo && (
-                  <th className="py-3 px-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-200/80 w-[64px] min-w-[64px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <th className="py-3 px-3 text-center sticky top-0 left-0 z-30 bg-slate-50 border-r border-slate-200/80 w-[64px] min-w-[64px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     Logo
                   </th>
                 )}
@@ -680,7 +680,7 @@ function ProspectsContent() {
                 {visibleColumns.nextFollowUp && <th className="py-3 px-3.5">Next Follow-up</th>}
                 {visibleColumns.notes && <th className="py-3 px-3.5 min-w-[200px]">Notes</th>}
                 {visibleColumns.actions && (
-                  <th className="py-3 px-3.5 text-right sticky right-0 bg-slate-50 z-30 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <th className="py-3 px-3.5 text-right sticky top-0 right-0 bg-slate-50 z-30 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     Actions
                   </th>
                 )}
