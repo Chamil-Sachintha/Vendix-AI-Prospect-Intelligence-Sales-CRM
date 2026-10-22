@@ -771,24 +771,11 @@ function ProspectsContent() {
 
                     {/* 6. Current SFA */}
                     {visibleColumns.currentSfa && (
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-2.5 px-3.5 text-slate-700">
                         {p.currentSfaProvider ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-slate-800">
-                              {p.currentSfaProvider}
-                            </span>
-                            {p.currentSfaStatus && (
-                              <span
-                                className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
-                                  p.currentSfaStatus === "Confirmed"
-                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                    : "bg-slate-100 text-slate-500"
-                                }`}
-                              >
-                                {p.currentSfaStatus}
-                              </span>
-                            )}
-                          </div>
+                          <span className="font-medium text-slate-800">
+                            {p.currentSfaProvider}
+                          </span>
                         ) : (
                           <span className="text-slate-300">-</span>
                         )}
