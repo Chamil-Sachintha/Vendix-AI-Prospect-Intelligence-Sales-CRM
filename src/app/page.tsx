@@ -590,64 +590,6 @@ function ProspectsContent() {
               className="w-full pl-8.5 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
             />
           </div>
-
-          {/* Quick Follow-up Due filter button */}
-          <button
-            onClick={() => setFollowUpsDueOnly(!followUpsDueOnly)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 ${
-              followUpsDueOnly
-                ? "bg-rose-600 text-white shadow-xs"
-                : "border border-rose-200 bg-rose-50/50 text-rose-700 hover:bg-rose-100"
-            }`}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            <span>Follow-ups Due Today / Overdue</span>
-          </button>
-
-          {/* Column Visibility Menu */}
-          <div ref={columnMenuRef} className="relative shrink-0">
-            <button
-              onClick={() => setShowColumnMenu(!showColumnMenu)}
-              className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 flex items-center gap-1.5 transition-colors"
-              title="Toggle Columns"
-            >
-              <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
-              <span>Columns</span>
-            </button>
-
-            {showColumnMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 text-xs space-y-1 animate-in fade-in zoom-in-95 duration-100">
-                <div className="font-bold text-slate-700 px-2 py-1 border-b border-slate-100 text-[11px]">
-                  Show / Hide Columns
-                </div>
-                {Object.entries({
-                  logo: "Company Logo",
-                  country: "Country",
-                  website: "Website",
-                  companySize: "Company Size",
-                  decisionMakers: "Decision-Makers",
-                  lastContacted: "Last Contacted",
-                  nextFollowUp: "Next Follow-up",
-                  notes: "Notes",
-                }).map(([key, label]) => (
-                  <label
-                    key={key}
-                    className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-slate-50 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={(visibleColumns as any)[key]}
-                      onChange={(e) =>
-                        setVisibleColumns({ ...visibleColumns, [key]: e.target.checked })
-                      }
-                      className="rounded text-[#0033BF]"
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Dropdown Filters Row */}
