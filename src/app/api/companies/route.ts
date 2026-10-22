@@ -135,6 +135,7 @@ export async function POST(request: Request) {
       lastContactedAt,
       nextFollowUpDate,
       notes,
+      contacts,
       decisionMakerName,
       decisionMakerJobTitle,
       contactEmail,
@@ -164,8 +165,27 @@ export async function POST(request: Request) {
       },
     });
 
-    // If decision maker provided, create contact
-    if (decisionMakerName && decisionMakerName.trim()) {
+    // If decision makers provided as an array, create contacts
+    if (Array.isArray(contacts) && contacts.length > 0) {
+      const validContacts = contacts.filter((c: any) => c.fullName && c.fullName.trim());
+      const hasPrimary = validContacts.some((c: any) => Boolean(c.isPrimary));
+
+      for (let i = 0; i < validContacts.length; i++) {
+        const c = validContacts[i];
+        await prisma.contact.create({
+          data: {
+            companyId: company.id,
+            fullName: c.fullName.trim(),
+            jobTitle: c.jobTitle?.trim() || "Decision-Maker",
+            businessEmail: c.businessEmail?.trim() || null,
+            businessPhone: c.businessPhone?.trim() || null,
+            linkedinUrl: c.linkedinUrl?.trim() || null,
+            isPrimary: hasPrimary ? Boolean(c.isPrimary) : i === 0,
+            isVerified: true,
+          },
+        });
+      }
+    } else if (decisionMakerName && decisionMakerName.trim()) {
       await prisma.contact.create({
         data: {
           companyId: company.id,

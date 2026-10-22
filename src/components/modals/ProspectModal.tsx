@@ -1,8 +1,18 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Building2, Users, CalendarCheck, AlertCircle, Upload, Trash2, Image as ImageIcon } from "lucide-react";
+import { X, Building2, Users, CalendarCheck, AlertCircle, Upload, Trash2, Image as ImageIcon, Plus } from "lucide-react";
 import { PROSPECT_STATUSES } from "@/lib/constants";
+
+export interface DecisionMakerItem {
+  id?: string;
+  fullName: string;
+  jobTitle: string;
+  businessEmail: string;
+  businessPhone: string;
+  linkedinUrl: string;
+  isPrimary: boolean;
+}
 
 interface ProspectModalProps {
   isOpen: boolean;
@@ -22,6 +32,17 @@ export function ProspectModal({
   const [showUrlInput, setShowUrlInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [contacts, setContacts] = useState<DecisionMakerItem[]>([
+    {
+      fullName: "",
+      jobTitle: "",
+      businessEmail: "",
+      businessPhone: "",
+      linkedinUrl: "",
+      isPrimary: true,
+    },
+  ]);
+
   const [form, setForm] = useState({
     // Section 1: Company Details
     name: "",
@@ -34,13 +55,6 @@ export function ProspectModal({
     currentSfaStatus: "Confirmed",
     sfaSourceUrl: "",
 
-    // Section 2: Decision-Maker Details
-    decisionMakerName: "",
-    decisionMakerJobTitle: "",
-    contactEmail: "",
-    contactPhone: "",
-    linkedinUrl: "",
-
     // Section 3: Prospect Tracking
     prospectStatus: "New",
     lastContactedAt: "",
@@ -50,7 +64,31 @@ export function ProspectModal({
 
   useEffect(() => {
     if (initialData) {
-      const primaryContact = initialData.contacts?.find((c: any) => c.isPrimary) || initialData.contacts?.[0];
+      if (initialData.contacts && initialData.contacts.length > 0) {
+        setContacts(
+          initialData.contacts.map((c: any, idx: number) => ({
+            id: c.id,
+            fullName: c.fullName || "",
+            jobTitle: c.jobTitle || "",
+            businessEmail: c.businessEmail || "",
+            businessPhone: c.businessPhone || "",
+            linkedinUrl: c.linkedinUrl || "",
+            isPrimary: c.isPrimary ?? (idx === 0),
+          }))
+        );
+      } else {
+        setContacts([
+          {
+            fullName: "",
+            jobTitle: "",
+            businessEmail: "",
+            businessPhone: "",
+            linkedinUrl: "",
+            isPrimary: true,
+          },
+        ]);
+      }
+
       setForm({
         name: initialData.name || "",
         website: initialData.website || "",
@@ -62,12 +100,6 @@ export function ProspectModal({
         currentSfaStatus: initialData.currentSfaStatus || "Confirmed",
         sfaSourceUrl: initialData.sfaSourceUrl || initialData.softwareRecords?.[0]?.evidenceUrl || "",
 
-        decisionMakerName: primaryContact?.fullName || "",
-        decisionMakerJobTitle: primaryContact?.jobTitle || "",
-        contactEmail: primaryContact?.businessEmail || "",
-        contactPhone: primaryContact?.businessPhone || "",
-        linkedinUrl: primaryContact?.linkedinUrl || "",
-
         prospectStatus: initialData.prospectStatus || "New",
         lastContactedAt: initialData.lastContactedAt
           ? new Date(initialData.lastContactedAt).toISOString().slice(0, 10)
@@ -78,6 +110,16 @@ export function ProspectModal({
         notes: initialData.notes || "",
       });
     } else {
+      setContacts([
+        {
+          fullName: "",
+          jobTitle: "",
+          businessEmail: "",
+          businessPhone: "",
+          linkedinUrl: "",
+          isPrimary: true,
+        },
+      ]);
       setForm({
         name: "",
         website: "",
@@ -88,12 +130,6 @@ export function ProspectModal({
         currentSfaProvider: "",
         currentSfaStatus: "Confirmed",
         sfaSourceUrl: "",
-
-        decisionMakerName: "",
-        decisionMakerJobTitle: "",
-        contactEmail: "",
-        contactPhone: "",
-        linkedinUrl: "",
 
         prospectStatus: "New",
         lastContactedAt: "",
@@ -163,6 +199,58 @@ export function ProspectModal({
     reader.readAsDataURL(file);
   };
 
+  const addDecisionMaker = () => {
+    setContacts((prev) => [
+      ...prev,
+      {
+        fullName: "",
+        jobTitle: "",
+        businessEmail: "",
+        businessPhone: "",
+        linkedinUrl: "",
+        isPrimary: prev.length === 0,
+      },
+    ]);
+  };
+
+  const removeDecisionMaker = (index: number) => {
+    setContacts((prev) => {
+      if (prev.length <= 1) {
+        return [
+          {
+            fullName: "",
+            jobTitle: "",
+            businessEmail: "",
+            businessPhone: "",
+            linkedinUrl: "",
+            isPrimary: true,
+          },
+        ];
+      }
+      const filtered = prev.filter((_, i) => i !== index);
+      const hasPrimary = filtered.some((c) => c.isPrimary);
+      if (!hasPrimary && filtered.length > 0) {
+        filtered[0].isPrimary = true;
+      }
+      return filtered;
+    });
+  };
+
+  const updateDecisionMaker = (index: number, field: keyof DecisionMakerItem, value: any) => {
+    setContacts((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const setPrimaryDecisionMaker = (index: number) => {
+    setContacts((prev) =>
+      prev.map((c, i) => ({
+        ...c,
+        isPrimary: i === index,
+      }))
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) {
@@ -178,10 +266,23 @@ export function ProspectModal({
       const url = isEdit ? `/api/companies/${initialData.id}` : "/api/companies";
       const method = isEdit ? "PUT" : "POST";
 
+      const validContacts = contacts.filter((c) => c.fullName && c.fullName.trim() !== "");
+      const primaryContact = validContacts.find((c) => c.isPrimary) || validContacts[0] || contacts[0];
+
+      const payload = {
+        ...form,
+        contacts: validContacts,
+        decisionMakerName: primaryContact?.fullName || "",
+        decisionMakerJobTitle: primaryContact?.jobTitle || "",
+        contactEmail: primaryContact?.businessEmail || "",
+        contactPhone: primaryContact?.businessPhone || "",
+        linkedinUrl: primaryContact?.linkedinUrl || "",
+      };
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -417,66 +518,128 @@ export function ProspectModal({
 
           {/* SECTION 2: DECISION-MAKER DETAILS */}
           <div className="space-y-3">
-            <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs pb-1 border-b border-slate-100">
-              <Users className="h-4 w-4 text-indigo-600" />
-              2. Primary Decision-Maker
+            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+              <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                <Users className="h-4 w-4 text-[#0033BF]" />
+                <span>2. Decision-Makers ({contacts.length})</span>
+              </div>
+              <button
+                type="button"
+                onClick={addDecisionMaker}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#0033BF] text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                <span>Add Decision-Maker</span>
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Full Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Mahesh Jayasinghe"
-                  value={form.decisionMakerName}
-                  onChange={(e) => setForm({ ...form, decisionMakerName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-                />
-              </div>
+            <div className="space-y-3">
+              {contacts.map((contact, index) => (
+                <div
+                  key={index}
+                  className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-800">
+                        Decision-Maker #{index + 1}
+                      </span>
+                      {contact.isPrimary ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                          Primary Contact
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setPrimaryDecisionMaker(index)}
+                          className="text-[10px] text-slate-500 hover:text-[#0033BF] underline cursor-pointer"
+                        >
+                          Set as Primary
+                        </button>
+                      )}
+                    </div>
 
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Job Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Head of Commercial & Sales Operations"
-                  value={form.decisionMakerJobTitle}
-                  onChange={(e) => setForm({ ...form, decisionMakerJobTitle: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-                />
-              </div>
+                    {contacts.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeDecisionMaker(index)}
+                        className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="Remove decision-maker"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
 
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Business Email</label>
-                <input
-                  type="email"
-                  placeholder="name@company.com"
-                  value={form.contactEmail}
-                  onChange={(e) => setForm({ ...form, contactEmail: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-                />
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-slate-700 font-semibold mb-1">
+                        Full Name {index === 0 && <span className="text-slate-400 font-normal">(Optional)</span>}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Mahesh Jayasinghe"
+                        value={contact.fullName}
+                        onChange={(e) => updateDecisionMaker(index, "fullName", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-[#0033BF] focus:outline-none"
+                      />
+                    </div>
 
-              <div>
-                <label className="block text-slate-700 font-semibold mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  placeholder="+94 77 123 4567"
-                  value={form.contactPhone}
-                  onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-                />
-              </div>
+                    <div>
+                      <label className="block text-slate-700 font-semibold mb-1">Job Title</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Head of Commercial & Sales Operations"
+                        value={contact.jobTitle}
+                        onChange={(e) => updateDecisionMaker(index, "jobTitle", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-[#0033BF] focus:outline-none"
+                      />
+                    </div>
 
-              <div className="sm:col-span-2">
-                <label className="block text-slate-700 font-semibold mb-1">LinkedIn Profile URL</label>
-                <input
-                  type="url"
-                  placeholder="https://linkedin.com/in/..."
-                  value={form.linkedinUrl}
-                  onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-                />
-              </div>
+                    <div>
+                      <label className="block text-slate-700 font-semibold mb-1">Business Email</label>
+                      <input
+                        type="email"
+                        placeholder="name@company.com"
+                        value={contact.businessEmail}
+                        onChange={(e) => updateDecisionMaker(index, "businessEmail", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-[#0033BF] focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 font-semibold mb-1">Phone Number</label>
+                      <input
+                        type="tel"
+                        placeholder="+94 77 123 4567"
+                        value={contact.businessPhone}
+                        onChange={(e) => updateDecisionMaker(index, "businessPhone", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-[#0033BF] focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-slate-700 font-semibold mb-1">LinkedIn Profile URL</label>
+                      <input
+                        type="url"
+                        placeholder="https://linkedin.com/in/..."
+                        value={contact.linkedinUrl}
+                        onChange={(e) => updateDecisionMaker(index, "linkedinUrl", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs focus:border-[#0033BF] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addDecisionMaker}
+                className="w-full py-2.5 px-3 border border-dashed border-slate-300 hover:border-[#0033BF] rounded-xl text-slate-600 hover:text-[#0033BF] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-white hover:bg-blue-50/20"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Another Decision-Maker</span>
+              </button>
             </div>
           </div>
 

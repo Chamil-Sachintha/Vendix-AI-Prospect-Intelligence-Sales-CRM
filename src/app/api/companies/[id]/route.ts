@@ -65,6 +65,7 @@ export async function PUT(
       nextFollowUpDate,
       notes,
       newDatedNote,
+      contacts,
       decisionMakerName,
       decisionMakerJobTitle,
       contactEmail,
@@ -94,8 +95,50 @@ export async function PUT(
       },
     });
 
-    // Handle primary contact update/creation if fields provided
-    if (decisionMakerName !== undefined) {
+    // Handle contacts update/creation if array provided
+    if (Array.isArray(contacts)) {
+      const validContacts = contacts.filter((c: any) => c.fullName && c.fullName.trim());
+      const sentIds = validContacts.filter((c: any) => c.id).map((c: any) => c.id);
+
+      // Remove contacts that were deleted in the form
+      await prisma.contact.deleteMany({
+        where: {
+          companyId: id,
+          id: { notIn: sentIds },
+        },
+      });
+
+      // Update or create contacts
+      for (let i = 0; i < validContacts.length; i++) {
+        const c = validContacts[i];
+        if (c.id) {
+          await prisma.contact.update({
+            where: { id: c.id },
+            data: {
+              fullName: c.fullName.trim(),
+              jobTitle: c.jobTitle?.trim() || "Decision-Maker",
+              businessEmail: c.businessEmail?.trim() || null,
+              businessPhone: c.businessPhone?.trim() || null,
+              linkedinUrl: c.linkedinUrl?.trim() || null,
+              isPrimary: Boolean(c.isPrimary),
+            },
+          });
+        } else {
+          await prisma.contact.create({
+            data: {
+              companyId: id,
+              fullName: c.fullName.trim(),
+              jobTitle: c.jobTitle?.trim() || "Decision-Maker",
+              businessEmail: c.businessEmail?.trim() || null,
+              businessPhone: c.businessPhone?.trim() || null,
+              linkedinUrl: c.linkedinUrl?.trim() || null,
+              isPrimary: Boolean(c.isPrimary),
+              isVerified: true,
+            },
+          });
+        }
+      }
+    } else if (decisionMakerName !== undefined) {
       const primaryContact = existing.contacts?.[0];
       if (primaryContact) {
         await prisma.contact.update({
