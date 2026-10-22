@@ -149,15 +149,15 @@ function ProspectsContent() {
     logo: true,
     companyName: true,
     industry: true,
-    country: true,
+    country: false,
     website: true,
     companySize: true,
     currentSfa: true,
-    decisionMakers: true,
+    decisionMakers: false,
     prospectStatus: true,
-    lastContacted: true,
-    nextFollowUp: true,
-    notes: true,
+    lastContacted: false,
+    nextFollowUp: false,
+    notes: false,
     actions: true,
   });
   const [showColumnMenu, setShowColumnMenu] = useState(false);
@@ -645,10 +645,12 @@ function ProspectsContent() {
                 </div>
                 {Object.entries({
                   logo: "Company Logo",
+                  country: "Country",
                   website: "Website",
                   companySize: "Company Size",
                   decisionMakers: "Decision-Makers",
                   lastContacted: "Last Contacted",
+                  nextFollowUp: "Next Follow-up",
                   notes: "Notes",
                 }).map(([key, label]) => (
                   <label
@@ -1080,9 +1082,9 @@ function ProspectsContent() {
             {/* Drawer Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
               {/* Status & Follow-up Card */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Current Status:</span>
+                  <span className="text-slate-500 font-medium">Prospect Status:</span>
                   <select
                     value={selectedProspect.prospectStatus || "New"}
                     onChange={(e) => handleStatusChange(selectedProspect.id, e.target.value)}
@@ -1097,21 +1099,96 @@ function ProspectsContent() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Next Follow-up:</span>
-                  <span className="font-bold text-slate-800">
-                    {selectedProspect.nextFollowUpDate
-                      ? new Date(selectedProspect.nextFollowUpDate).toLocaleDateString()
-                      : "None scheduled"}
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-slate-400" />
+                    Next Follow-up:
                   </span>
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`font-bold px-2 py-0.5 rounded-md text-xs ${
+                        selectedProspect.nextFollowUpDate &&
+                        new Date(selectedProspect.nextFollowUpDate) < new Date(new Date().setHours(0, 0, 0, 0)) &&
+                        !["Won", "Lost", "Do Not Contact"].includes(selectedProspect.prospectStatus)
+                          ? "bg-rose-100 text-rose-700 border border-rose-200 font-bold"
+                          : selectedProspect.nextFollowUpDate
+                          ? "bg-white border border-slate-200 text-slate-800"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {selectedProspect.nextFollowUpDate
+                        ? new Date(selectedProspect.nextFollowUpDate).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "None scheduled"}
+                    </span>
+                    {selectedProspect.nextFollowUpDate && (
+                      <button
+                        onClick={() => handleCompleteFollowUp(selectedProspect.id)}
+                        title="Mark follow-up completed"
+                        className="p-1 rounded text-slate-400 hover:text-emerald-600 transition-colors"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Last Contacted:</span>
-                  <span className="text-slate-700">
+                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                    Last Contacted:
+                  </span>
+                  <span className="text-slate-700 font-medium">
                     {selectedProspect.lastContactedAt
-                      ? new Date(selectedProspect.lastContactedAt).toLocaleDateString()
+                      ? new Date(selectedProspect.lastContactedAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
                       : "Never"}
                   </span>
+                </div>
+              </div>
+
+              {/* Company Identity & Location */}
+              <div className="space-y-1.5">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-400">
+                  Location & Scale
+                </h4>
+                <div className="p-3.5 rounded-2xl bg-white border border-slate-200 space-y-2 text-slate-700">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 flex items-center gap-1.5">
+                      <Globe className="h-3.5 w-3.5 text-slate-400" />
+                      Country:
+                    </span>
+                    <span className="font-bold text-slate-900">{selectedProspect.country || "Not specified"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Industry:</span>
+                    <span className="font-medium text-slate-800">{selectedProspect.industry}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400">Scale / Employees:</span>
+                    <span className="font-medium text-slate-800">
+                      {selectedProspect.employeeRange || selectedProspect.sizeCategory || "Not specified"}
+                    </span>
+                  </div>
+                  {selectedProspect.website && (
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                      <span className="text-slate-400">Website:</span>
+                      <a
+                        href={selectedProspect.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#0033BF] hover:underline flex items-center gap-1 font-semibold"
+                      >
+                        {selectedProspect.website.replace(/^https?:\/\//i, "")}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
 
