@@ -5,7 +5,12 @@ import { AppProvider, useApp } from "@/context/AppContext";
 import { Sidebar } from "./Sidebar";
 import { QuickAddModal } from "../modals/QuickAddModal";
 
-function ShellInner({ children }: { children: React.ReactNode }) {
+interface AppShellProps {
+  children: React.ReactNode;
+  fullWidth?: boolean;
+}
+
+function ShellInner({ children, fullWidth = false }: AppShellProps) {
   const { sidebarCollapsed } = useApp();
 
   return (
@@ -16,17 +21,19 @@ function ShellInner({ children }: { children: React.ReactNode }) {
           sidebarCollapsed ? "pl-20" : "pl-60"
         }`}
       >
-        <div className="p-6 md:p-8 max-w-7xl mx-auto">{children}</div>
+        <div className={fullWidth ? "p-3 sm:px-4 lg:px-5 py-4 w-full" : "p-6 md:p-8 max-w-7xl mx-auto"}>
+          {children}
+        </div>
       </main>
       <QuickAddModal />
     </div>
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, fullWidth = false }: AppShellProps) {
   return (
     <AppProvider>
-      <ShellInner>{children}</ShellInner>
+      <ShellInner fullWidth={fullWidth}>{children}</ShellInner>
     </AppProvider>
   );
 }
