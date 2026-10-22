@@ -29,7 +29,12 @@ import {
   Phone,
   MessageSquarePlus,
   RefreshCw,
+  Users,
+  UserPlus,
+  Copy,
+  Check,
 } from "lucide-react";
+import { LinkedInIcon } from "@/components/icons/LinkedInIcon";
 import { PROSPECT_STATUSES } from "@/lib/constants";
 
 function ProspectLogoCell({
@@ -96,6 +101,15 @@ function ProspectLogoCell({
   );
 }
 
+const ROLE_BADGES: Record<string, { label: string; class: string }> = {
+  DECISION_MAKER: { label: "Decision-Maker", class: "bg-purple-100 text-purple-800 border-purple-200" },
+  INFLUENCER: { label: "Influencer", class: "bg-blue-100 text-blue-800 border-blue-200" },
+  TECHNICAL_EVALUATOR: { label: "Technical Evaluator", class: "bg-teal-100 text-teal-800 border-teal-200" },
+  EXECUTIVE_SPONSOR: { label: "Executive Sponsor", class: "bg-indigo-100 text-indigo-800 border-indigo-200" },
+  PROCUREMENT: { label: "Procurement", class: "bg-amber-100 text-amber-800 border-amber-200" },
+  USER: { label: "Champion / User", class: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+};
+
 function ProspectsContent() {
   const { currentUser, permissions } = useApp();
   const searchParams = useSearchParams();
@@ -139,10 +153,7 @@ function ProspectsContent() {
     website: true,
     companySize: true,
     currentSfa: true,
-    decisionMakerName: true,
-    decisionMakerTitle: true,
-    contactEmail: true,
-    contactPhone: true,
+    decisionMakers: true,
     prospectStatus: true,
     lastContacted: true,
     nextFollowUp: true,
@@ -151,6 +162,23 @@ function ProspectsContent() {
   });
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const columnMenuRef = useRef<HTMLDivElement>(null);
+
+  // Drawer Decision-Makers Management State
+  const [contactSearch, setContactSearch] = useState("");
+  const [isAddingContact, setIsAddingContact] = useState(false);
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
+  const [savingContact, setSavingContact] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState<string | null>(null);
+  const [contactForm, setContactForm] = useState({
+    fullName: "",
+    jobTitle: "",
+    department: "",
+    roleInPurchasing: "DECISION_MAKER",
+    businessEmail: "",
+    businessPhone: "",
+    linkedinUrl: "",
+    isPrimary: false,
+  });
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -267,6 +295,182 @@ function ProspectsContent() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Contact Handlers for Drawer
+  const handleOpenAddContact = () => {
+    setEditingContactId(null);
+    setContactForm({
+      fullName: "",
+      jobTitle: "",
+      department: "",
+      roleInPurchasing: "DECISION_MAKER",
+      businessEmail: "",
+      businessPhone: "",
+      linkedinUrl: "",
+      isPrimary: (selectedProspect?.contacts?.length || 0) === 0,
+    });
+    setIsAddingContact(true);
+  };
+
+  const handleOpenEditContact = (ct: any) => {
+    setEditingContactId(ct.id);
+    setContactForm({
+      fullName: ct.fullName || "",
+      jobTitle: ct.jobTitle || "",
+      department: ct.department || "",
+      roleInPurchasing: ct.roleInPurchasing || "DECISION_MAKER",
+      businessEmail: ct.businessEmail || "",
+      businessPhone: ct.businessPhone || "",
+      linkedinUrl: ct.linkedinUrl || "",
+      isPrimary: Boolean(ct.isPrimary),
+    });
+    setIsAddingContact(true);
+  };
+
+  const handleSaveContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProspect || !contactForm.fullName.trim() || !contactForm.jobTitle.trim()) return;
+
+    setSavingContact(true);
+    try {
+      if (editingContactId) {
+        const res = await fetch(`/api/contacts/${editingContactId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contactForm),
+        });
+        if (res.ok) {
+          const updatedContact = await res.json();
+          setSelectedProspect((prev: any) => {
+            const updatedContacts = prev.contacts.map((c: any) => {
+              if (c.id === editingContactId) return updatedContact;
+              if (contactForm.isPrimary) return { ...c, isPrimary: false };
+              return c;
+            });
+            return { ...prev, contacts: updatedContacts };
+          });
+          setProspects((prev) =>
+            prev.map((p) =>
+              p.id === selectedProspect.id
+                ? {
+                    ...p,
+                    contacts: p.contacts.map((c: any) =>
+                      c.id === editingContactId
+                        ? updatedContact
+                        : contactForm.isPrimary
+                        ? { ...c, isPrimary: false }
+                        : c
+                    ),
+                  }
+                : p
+            )
+          );
+        }
+      } else {
+        const res = await fetch("/api/contacts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            companyId: selectedProspect.id,
+            ...contactForm,
+          }),
+        });
+        if (res.ok) {
+          const newContact = await res.json();
+          setSelectedProspect((prev: any) => {
+            const currentContacts = prev.contacts || [];
+            const nextContacts = contactForm.isPrimary
+              ? [newContact, ...currentContacts.map((c: any) => ({ ...c, isPrimary: false }))]
+              : [...currentContacts, newContact];
+            return { ...prev, contacts: nextContacts };
+          });
+          setProspects((prev) =>
+            prev.map((p) =>
+              p.id === selectedProspect.id
+                ? {
+                    ...p,
+                    contacts: contactForm.isPrimary
+                      ? [newContact, ...(p.contacts || []).map((c: any) => ({ ...c, isPrimary: false }))]
+                      : [...(p.contacts || []), newContact],
+                  }
+                : p
+            )
+          );
+        }
+      }
+      setIsAddingContact(false);
+      setEditingContactId(null);
+    } catch (err) {
+      console.error("Failed to save contact:", err);
+    } finally {
+      setSavingContact(false);
+    }
+  };
+
+  const handleDeleteContact = async (contactId: string) => {
+    if (!confirm("Are you sure you want to remove this decision-maker?")) return;
+    try {
+      const res = await fetch(`/api/contacts/${contactId}`, { method: "DELETE" });
+      if (res.ok) {
+        setSelectedProspect((prev: any) => ({
+          ...prev,
+          contacts: (prev.contacts || []).filter((c: any) => c.id !== contactId),
+        }));
+        setProspects((prev) =>
+          prev.map((p) =>
+            p.id === selectedProspect?.id
+              ? {
+                  ...p,
+                  contacts: (p.contacts || []).filter((c: any) => c.id !== contactId),
+                }
+              : p
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Failed to delete contact:", err);
+    }
+  };
+
+  const handleSetPrimaryContact = async (contactId: string) => {
+    try {
+      const res = await fetch(`/api/contacts/${contactId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPrimary: true }),
+      });
+      if (res.ok) {
+        setSelectedProspect((prev: any) => ({
+          ...prev,
+          contacts: (prev.contacts || []).map((c: any) => ({
+            ...c,
+            isPrimary: c.id === contactId,
+          })),
+        }));
+        setProspects((prev) =>
+          prev.map((p) =>
+            p.id === selectedProspect?.id
+              ? {
+                  ...p,
+                  contacts: (p.contacts || []).map((c: any) => ({
+                    ...c,
+                    isPrimary: c.id === contactId,
+                  })),
+                }
+              : p
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Failed to set primary contact:", err);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedEmail(text);
+    setTimeout(() => setCopiedEmail(null), 2000);
   };
 
   // CSV Import handler
@@ -443,8 +647,7 @@ function ProspectsContent() {
                   logo: "Company Logo",
                   website: "Website",
                   companySize: "Company Size",
-                  decisionMakerTitle: "Job Title",
-                  contactPhone: "Phone",
+                  decisionMakers: "Decision-Makers",
                   lastContacted: "Last Contacted",
                   notes: "Notes",
                 }).map(([key, label]) => (
@@ -554,10 +757,7 @@ function ProspectsContent() {
                 {visibleColumns.website && <th className="py-3 px-3">Website</th>}
                 {visibleColumns.companySize && <th className="py-3 px-3">Size / Scale</th>}
                 {visibleColumns.currentSfa && <th className="py-3 px-3.5">Current SFA</th>}
-                {visibleColumns.decisionMakerName && <th className="py-3 px-3.5">Decision-Maker</th>}
-                {visibleColumns.decisionMakerTitle && <th className="py-3 px-3">Job Title</th>}
-                {visibleColumns.contactEmail && <th className="py-3 px-3">Email</th>}
-                {visibleColumns.contactPhone && <th className="py-3 px-3">Phone</th>}
+                {visibleColumns.decisionMakers && <th className="py-3 px-3.5">Decision-Makers</th>}
                 {visibleColumns.prospectStatus && <th className="py-3 px-3.5">Prospect Status</th>}
                 {visibleColumns.lastContacted && <th className="py-3 px-3">Last Contacted</th>}
                 {visibleColumns.nextFollowUp && <th className="py-3 px-3.5">Next Follow-up</th>}
@@ -678,53 +878,21 @@ function ProspectsContent() {
                       </td>
                     )}
 
-                    {/* 7. Decision-Maker Name */}
-                    {visibleColumns.decisionMakerName && (
+                    {/* 7. Decision-Makers Count / Trigger */}
+                    {visibleColumns.decisionMakers && (
                       <td className="py-2.5 px-3.5">
-                        {primaryContact ? (
-                          <span className="font-semibold text-slate-900">
-                            {primaryContact.fullName}
+                        <button
+                          onClick={() => setSelectedProspect(p)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 hover:text-[#0033BF] transition-all text-xs font-semibold text-slate-700 group/pill"
+                          title="Click to view and manage all decision-makers"
+                        >
+                          <Users className="h-3.5 w-3.5 text-slate-400 group-hover/pill:text-[#0033BF]" />
+                          <span>
+                            {p.contacts?.length
+                              ? `${p.contacts.length} Decision-Maker${p.contacts.length > 1 ? "s" : ""}`
+                              : "No contacts"}
                           </span>
-                        ) : (
-                          <span className="text-slate-300 italic">None logged</span>
-                        )}
-                      </td>
-                    )}
-
-                    {/* 8. Decision-Maker Job Title */}
-                    {visibleColumns.decisionMakerTitle && (
-                      <td className="py-2.5 px-3 text-slate-600">
-                        {primaryContact?.jobTitle || "-"}
-                      </td>
-                    )}
-
-                    {/* 9. Contact Email */}
-                    {visibleColumns.contactEmail && (
-                      <td className="py-2.5 px-3">
-                        {primaryContact?.businessEmail ? (
-                          <a
-                            href={`mailto:${primaryContact.businessEmail}`}
-                            className="text-[#0033BF] hover:underline flex items-center gap-1 text-[11px]"
-                          >
-                            <Mail className="h-3 w-3 text-slate-400" />
-                            {primaryContact.businessEmail}
-                          </a>
-                        ) : (
-                          <span className="text-slate-300">-</span>
-                        )}
-                      </td>
-                    )}
-
-                    {/* 10. Contact Phone */}
-                    {visibleColumns.contactPhone && (
-                      <td className="py-2.5 px-3 text-slate-600">
-                        {primaryContact?.businessPhone ? (
-                          <a href={`tel:${primaryContact.businessPhone}`} className="hover:underline">
-                            {primaryContact.businessPhone}
-                          </a>
-                        ) : (
-                          <span className="text-slate-300">-</span>
-                        )}
+                        </button>
                       </td>
                     )}
 
@@ -846,7 +1014,7 @@ function ProspectsContent() {
                           <button
                             onClick={() => setSelectedProspect(p)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-[#0033BF] hover:bg-slate-100 transition-colors"
-                            title="View Prospect Details"
+                            title="View Details & Decision-Makers"
                           >
                             <Eye className="h-3.5 w-3.5" />
                           </button>
@@ -978,33 +1146,347 @@ function ProspectsContent() {
                 </div>
               </div>
 
-              {/* Decision-Makers */}
-              <div className="space-y-1.5">
-                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-400">
-                  Decision-Makers & Leaders ({selectedProspect.contacts?.length || 0})
-                </h4>
-                <div className="space-y-2">
-                  {selectedProspect.contacts?.map((ct: any) => (
-                    <div key={ct.id} className="p-3 rounded-xl border border-slate-200 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-900">{ct.fullName}</span>
-                        {ct.isPrimary && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-[#0033BF]">
-                            Primary
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-slate-500">{ct.jobTitle}</div>
-                      {ct.businessEmail && (
-                        <div>
-                          <a href={`mailto:${ct.businessEmail}`} className="text-[#0033BF] hover:underline">
-                            {ct.businessEmail}
-                          </a>
-                        </div>
-                      )}
-                      {ct.businessPhone && <div>{ct.businessPhone}</div>}
+              {/* Decision-Makers & Key Stakeholders */}
+              <div className="space-y-3 pt-1 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-500">
+                      Decision-Makers & Leaders
+                    </h4>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0033BF] border border-blue-200">
+                      {selectedProspect.contacts?.length || 0}
+                    </span>
+                  </div>
+
+                  {!isAddingContact && (
+                    <button
+                      onClick={handleOpenAddContact}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#0033BF] hover:bg-[#2768FF] text-white text-[11px] font-semibold shadow-2xs transition-colors"
+                    >
+                      <UserPlus className="h-3 w-3" />
+                      Add Contact
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter / Search contacts when there are more than 2 */}
+                {(selectedProspect.contacts?.length || 0) > 2 && !isAddingContact && (
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="Filter decision-makers by name, title, or email..."
+                      value={contactSearch}
+                      onChange={(e) => setContactSearch(e.target.value)}
+                      className="w-full pl-7.5 pr-2.5 py-1 text-xs rounded-lg border border-slate-200 focus:border-[#0033BF] focus:outline-none"
+                    />
+                  </div>
+                )}
+
+                {/* Inline Add / Edit Decision-Maker Form */}
+                {isAddingContact && (
+                  <form
+                    onSubmit={handleSaveContact}
+                    className="p-3.5 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-3 animate-in fade-in duration-150"
+                  >
+                    <div className="flex items-center justify-between border-b border-blue-100 pb-2">
+                      <span className="font-bold text-xs text-[#0033BF] flex items-center gap-1.5">
+                        <UserPlus className="h-3.5 w-3.5" />
+                        {editingContactId ? "Edit Decision-Maker" : "Add New Decision-Maker"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAddingContact(false);
+                          setEditingContactId(null);
+                        }}
+                        className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
                     </div>
-                  ))}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="sm:col-span-2">
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Full Name <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Mahesh Jayasinghe"
+                          value={contactForm.fullName}
+                          onChange={(e) => setContactForm({ ...contactForm, fullName: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Job Title <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g. Head of Sales Operations"
+                          value={contactForm.jobTitle}
+                          onChange={(e) => setContactForm({ ...contactForm, jobTitle: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Department
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Commercial / IT"
+                          value={contactForm.department}
+                          onChange={(e) => setContactForm({ ...contactForm, department: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Purchasing Role
+                        </label>
+                        <select
+                          value={contactForm.roleInPurchasing}
+                          onChange={(e) => setContactForm({ ...contactForm, roleInPurchasing: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                        >
+                          <option value="DECISION_MAKER">Decision-Maker (Sign-off)</option>
+                          <option value="INFLUENCER">Influencer (Sales/Ops)</option>
+                          <option value="TECHNICAL_EVALUATOR">Technical Evaluator (IT/Lead)</option>
+                          <option value="EXECUTIVE_SPONSOR">Executive Sponsor (C-Level)</option>
+                          <option value="PROCUREMENT">Procurement / Finance</option>
+                          <option value="USER">Champion / Field User</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Business Email
+                        </label>
+                        <input
+                          type="email"
+                          placeholder="mahesh@example.com"
+                          value={contactForm.businessEmail}
+                          onChange={(e) => setContactForm({ ...contactForm, businessEmail: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          placeholder="+94 77 123 4567"
+                          value={contactForm.businessPhone}
+                          onChange={(e) => setContactForm({ ...contactForm, businessPhone: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          LinkedIn URL
+                        </label>
+                        <input
+                          type="url"
+                          placeholder="https://linkedin.com/in/..."
+                          value={contactForm.linkedinUrl}
+                          onChange={(e) => setContactForm({ ...contactForm, linkedinUrl: e.target.value })}
+                          className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 pt-1">
+                        <label className="flex items-center gap-2 cursor-pointer text-[11px] text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={contactForm.isPrimary}
+                            onChange={(e) => setContactForm({ ...contactForm, isPrimary: e.target.checked })}
+                            className="rounded text-[#0033BF]"
+                          />
+                          <span className="font-semibold">Designate as Primary Decision-Maker</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-blue-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAddingContact(false);
+                          setEditingContactId(null);
+                        }}
+                        className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={savingContact}
+                        className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0033BF] hover:bg-[#2768FF] rounded-lg transition-colors shadow-2xs"
+                      >
+                        {savingContact ? "Saving..." : editingContactId ? "Update Contact" : "Save Contact"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* List of Decision-Makers */}
+                <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                  {(selectedProspect.contacts || [])
+                    .filter((ct: any) => {
+                      if (!contactSearch.trim()) return true;
+                      const q = contactSearch.toLowerCase();
+                      return (
+                        ct.fullName?.toLowerCase().includes(q) ||
+                        ct.jobTitle?.toLowerCase().includes(q) ||
+                        ct.department?.toLowerCase().includes(q) ||
+                        ct.businessEmail?.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((ct: any) => {
+                      const roleConfig = ROLE_BADGES[ct.roleInPurchasing] || {
+                        label: ct.roleInPurchasing || "Stakeholder",
+                        class: "bg-slate-100 text-slate-700 border-slate-200",
+                      };
+
+                      const contactInitials = (ct.fullName || "DM")
+                        .split(" ")
+                        .map((n: string) => n[0])
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase();
+
+                      return (
+                        <div
+                          key={ct.id}
+                          className={`p-3 rounded-xl border transition-all ${
+                            ct.isPrimary
+                              ? "bg-blue-50/30 border-blue-200 shadow-2xs"
+                              : "bg-white border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-start gap-2.5">
+                              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                {contactInitials}
+                              </div>
+                              <div>
+                                <div className="flex items-center flex-wrap gap-1.5">
+                                  <span className="font-bold text-slate-900 text-xs">{ct.fullName}</span>
+                                  {ct.isPrimary && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-[#0033BF] border border-blue-200">
+                                      ★ Primary
+                                    </span>
+                                  )}
+                                  <span
+                                    className={`text-[9px] font-semibold px-1.5 py-0.2 rounded border ${roleConfig.class}`}
+                                  >
+                                    {roleConfig.label}
+                                  </span>
+                                </div>
+                                <div className="text-[11px] font-medium text-slate-600 mt-0.5">
+                                  {ct.jobTitle}
+                                  {ct.department && (
+                                    <span className="text-slate-400 font-normal"> • {ct.department}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Contact Action Buttons */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                onClick={() => handleOpenEditContact(ct)}
+                                title="Edit Decision-Maker"
+                                className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteContact(ct.id)}
+                                title="Delete Decision-Maker"
+                                className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Email, Phone, LinkedIn Links */}
+                          <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                            {ct.businessEmail && (
+                              <div className="flex items-center gap-1 text-slate-600">
+                                <a
+                                  href={`mailto:${ct.businessEmail}`}
+                                  className="text-[#0033BF] hover:underline flex items-center gap-1 font-medium"
+                                >
+                                  <Mail className="h-3 w-3 text-slate-400" />
+                                  {ct.businessEmail}
+                                </a>
+                                <button
+                                  onClick={() => copyToClipboard(ct.businessEmail)}
+                                  title="Copy Email"
+                                  className="text-slate-400 hover:text-slate-600 ml-0.5"
+                                >
+                                  {copiedEmail === ct.businessEmail ? (
+                                    <Check className="h-3 w-3 text-emerald-600" />
+                                  ) : (
+                                    <Copy className="h-3 w-3" />
+                                  )}
+                                </button>
+                              </div>
+                            )}
+
+                            {ct.businessPhone && (
+                              <a
+                                href={`tel:${ct.businessPhone}`}
+                                className="text-slate-600 hover:text-[#0033BF] flex items-center gap-1 font-medium"
+                              >
+                                <Phone className="h-3 w-3 text-slate-400" />
+                                {ct.businessPhone}
+                              </a>
+                            )}
+
+                            {ct.linkedinUrl && (
+                              <a
+                                href={ct.linkedinUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#0077B5] hover:underline flex items-center gap-1 font-medium"
+                              >
+                                <LinkedInIcon className="h-3 w-3 fill-current" />
+                                LinkedIn
+                              </a>
+                            )}
+
+                            {!ct.isPrimary && (
+                              <button
+                                onClick={() => handleSetPrimaryContact(ct.id)}
+                                className="ml-auto text-[10px] font-semibold text-[#0033BF] hover:underline"
+                              >
+                                Set as primary
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                  {(!selectedProspect.contacts || selectedProspect.contacts.length === 0) && (
+                    <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-slate-400 text-xs">
+                      No decision-makers added yet. Click &ldquo;Add Contact&rdquo; above to log executive contacts.
+                    </div>
+                  )}
                 </div>
               </div>
 
