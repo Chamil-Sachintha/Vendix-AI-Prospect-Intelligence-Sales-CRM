@@ -553,29 +553,6 @@ function ProspectsContent() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* CSV Import */}
-          <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs cursor-pointer transition-colors">
-            <Upload className="h-3.5 w-3.5 text-slate-500" />
-            <span>{isImporting ? "Importing..." : "Import CSV"}</span>
-            <input
-              type="file"
-              accept=".csv"
-              disabled={isImporting}
-              onChange={handleCsvImport}
-              className="hidden"
-            />
-          </label>
-
-          {/* CSV Export */}
-          <a
-            href={getExportUrl()}
-            download
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs transition-colors"
-          >
-            <Download className="h-3.5 w-3.5 text-slate-500" />
-            <span>Export Table</span>
-          </a>
-
           {/* Add Prospect Button */}
           <button
             onClick={() => {
