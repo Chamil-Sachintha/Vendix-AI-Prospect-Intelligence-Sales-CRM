@@ -958,12 +958,17 @@ function ProspectsContent() {
         </div>
       </div>
 
-      {/* DETAIL SLIDE-OVER DRAWER (Section 8) */}
+      {/* DETAIL POPUP MODAL (Centered Modal) */}
       {selectedProspect && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/30 backdrop-blur-xs animate-in fade-in duration-100">
-          <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
-            {/* Drawer Header */}
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelectedProspect(null);
+          }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-100"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-100">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-3">
                 <ProspectLogoCell prospect={selectedProspect} size="lg" />
                 <div>
@@ -975,14 +980,14 @@ function ProspectsContent() {
               </div>
               <button
                 onClick={() => setSelectedProspect(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 text-xs">
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
               {/* Status & Follow-up Card */}
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
@@ -1516,20 +1521,20 @@ function ProspectsContent() {
               </div>
             </div>
 
-            {/* Drawer Footer */}
-            <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
               <button
                 onClick={() => {
                   setEditingProspect(selectedProspect);
                   setIsModalOpen(true);
                 }}
-                className="px-4 py-1.5 rounded-xl border border-slate-200 bg-white font-semibold hover:bg-slate-100 transition-colors text-xs text-slate-700"
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white font-semibold hover:bg-slate-100 transition-colors text-xs text-slate-700 cursor-pointer"
               >
                 Edit Prospect
               </button>
               <button
                 onClick={() => setSelectedProspect(null)}
-                className="px-4 py-1.5 rounded-xl bg-[#0033BF] text-white font-semibold text-xs"
+                className="px-5 py-2 rounded-xl bg-[#0033BF] hover:bg-[#2768FF] text-white font-semibold text-xs transition-colors cursor-pointer shadow-xs"
               >
                 Close
               </button>
