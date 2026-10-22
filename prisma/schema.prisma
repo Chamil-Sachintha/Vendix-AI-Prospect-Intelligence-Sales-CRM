@@ -85,6 +85,15 @@ model Company {
   intentScore         Int      @default(0) // 0 - 100
   intentLevel         String   @default("LOW") // HIGH, MEDIUM, LOW
 
+  // Lightweight Prospect Tracking
+  prospectStatus      String   @default("New") // New, Researching, Ready to Contact, Contacted, Awaiting Response, Responded, Interested, Meeting / Demo, Proposal Sent, Won, Lost, Nurturing, Do Not Contact
+  lastContactedAt     DateTime?
+  nextFollowUpDate    DateTime?
+  notes               String?
+  currentSfaProvider  String?
+  currentSfaStatus    String?  @default("Confirmed") // Confirmed, Unverified, Previously Used, Unknown
+  sfaSourceUrl        String?
+
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 

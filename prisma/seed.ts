@@ -1583,11 +1583,29 @@ async function main() {
     // Calculate intent score based on signals
     const calc = calculateCompanyIntentScore(signals || []);
 
+    const sfa = software?.[0];
+    const sfaProvider = sfa ? `${sfa.productName} (${sfa.vendorName})` : (companyData.usesExistingSoftware === "Yes" ? "In-House SFA" : "None");
+    const sfaStatus = sfa?.confidence === "CONFIRMED" ? "Confirmed" : "Unverified";
+    const sfaUrl = (sfa as any)?.evidenceUrl || "";
+
+    let pStatus = "New";
+    if (opportunity?.stageName === "Won") pStatus = "Won";
+    else if (opportunity?.stageName === "Proposal Sent") pStatus = "Proposal Sent";
+    else if (opportunity?.stageName?.includes("Demo") || opportunity?.stageName?.includes("Discovery")) pStatus = "Meeting / Demo";
+    else if (companyData.qualificationStatus === "QUALIFIED") pStatus = "Interested";
+    else if (companyData.qualificationStatus === "RESEARCHING") pStatus = "Researching";
+
     const createdCompany = await prisma.company.create({
       data: {
         ...companyData,
         intentScore: calc.score,
         intentLevel: calc.level,
+        prospectStatus: pStatus,
+        currentSfaProvider: sfaProvider,
+        currentSfaStatus: sfaStatus,
+        sfaSourceUrl: sfaUrl,
+        nextFollowUpDate: task?.dueDate || null,
+        notes: companyData.operationalChallenges || null,
         qualification: {
           create: {
             industryFit: "High",
