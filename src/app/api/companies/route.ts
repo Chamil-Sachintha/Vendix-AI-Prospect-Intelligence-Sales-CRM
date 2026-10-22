@@ -124,6 +124,7 @@ export async function POST(request: Request) {
     const {
       name,
       website,
+      logoUrl,
       industry = "FMCG & Retail",
       country = "Sri Lanka",
       companySize,
@@ -146,6 +147,7 @@ export async function POST(request: Request) {
       data: {
         name: name.trim(),
         website: website?.trim() || null,
+        logoUrl: logoUrl?.trim() || null,
         industry: industry || "FMCG & Retail",
         country: country || "Sri Lanka",
         employeeRange: companySize || null,

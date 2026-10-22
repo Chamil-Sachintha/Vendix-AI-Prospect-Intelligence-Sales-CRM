@@ -53,6 +53,7 @@ export async function PUT(
     const {
       name,
       website,
+      logoUrl,
       industry,
       country,
       companySize,
@@ -77,6 +78,7 @@ export async function PUT(
       data: {
         name: name ? name.trim() : undefined,
         website: website !== undefined ? (website?.trim() || null) : undefined,
+        logoUrl: logoUrl !== undefined ? (logoUrl?.trim() || null) : undefined,
         industry: industry || undefined,
         country: country || undefined,
         employeeRange: companySize !== undefined ? companySize : undefined,

@@ -32,6 +32,70 @@ import {
 } from "lucide-react";
 import { PROSPECT_STATUSES } from "@/lib/constants";
 
+function ProspectLogoCell({
+  prospect,
+  onClick,
+  size = "md",
+}: {
+  prospect: any;
+  onClick?: () => void;
+  size?: "sm" | "md" | "lg";
+}) {
+  const [imgError, setImgError] = useState(false);
+  const cleanDomain = prospect.website
+    ? prospect.website.trim().replace(/^https?:\/\//i, "").split("/")[0].split(":")[0]
+    : null;
+
+  const logoSrc =
+    !imgError &&
+    (prospect.logoUrl ||
+      (cleanDomain ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128` : null));
+
+  const words = (prospect.name || "")
+    .replace(/PLC|Ltd|Limited|Inc|Pvt/gi, "")
+    .trim()
+    .split(/\s+/);
+  const initials =
+    words.length >= 2
+      ? (words[0][0] + words[1][0]).toUpperCase()
+      : (prospect.name || "CO").slice(0, 2).toUpperCase();
+
+  const containerSizes = {
+    sm: "h-7 w-7 rounded-lg text-[10px]",
+    md: "h-9 w-9 rounded-xl text-xs",
+    lg: "h-11 w-11 rounded-2xl text-sm",
+  };
+
+  const imgSizes = {
+    sm: "h-5 w-5",
+    md: "h-6 w-6",
+    lg: "h-8 w-8",
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={`${prospect.name} (Click to view details)`}
+      className={`inline-flex items-center justify-center border border-slate-200/90 bg-white shadow-2xs hover:border-[#0033BF] hover:shadow-sm transition-all overflow-hidden shrink-0 group/logo ${containerSizes[size]}`}
+    >
+      {logoSrc ? (
+        <img
+          src={logoSrc}
+          alt={prospect.name}
+          className={`${imgSizes[size]} object-contain p-0.5 rounded-md transition-transform group-hover/logo:scale-110`}
+          onError={() => setImgError(true)}
+          loading="lazy"
+        />
+      ) : (
+        <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-[#0033BF] text-white font-bold tracking-wider">
+          {initials}
+        </div>
+      )}
+    </button>
+  );
+}
+
 function ProspectsContent() {
   const { currentUser, permissions } = useApp();
   const searchParams = useSearchParams();
@@ -68,6 +132,7 @@ function ProspectsContent() {
 
   // Column Visibility Toggle
   const [visibleColumns, setVisibleColumns] = useState({
+    logo: true,
     companyName: true,
     industry: true,
     country: true,
@@ -375,6 +440,7 @@ function ProspectsContent() {
                   Show / Hide Columns
                 </div>
                 {Object.entries({
+                  logo: "Company Logo",
                   website: "Website",
                   companySize: "Company Size",
                   decisionMakerTitle: "Job Title",
@@ -477,6 +543,11 @@ function ProspectsContent() {
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
+                {visibleColumns.logo && (
+                  <th className="py-3 px-3 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-200/80 w-[64px] min-w-[64px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                    Logo
+                  </th>
+                )}
                 {visibleColumns.companyName && <th className="py-3 px-3.5">Company Name</th>}
                 {visibleColumns.industry && <th className="py-3 px-3">Industry</th>}
                 {visibleColumns.country && <th className="py-3 px-3">Country</th>}
@@ -491,7 +562,11 @@ function ProspectsContent() {
                 {visibleColumns.lastContacted && <th className="py-3 px-3">Last Contacted</th>}
                 {visibleColumns.nextFollowUp && <th className="py-3 px-3.5">Next Follow-up</th>}
                 {visibleColumns.notes && <th className="py-3 px-3.5 min-w-[200px]">Notes</th>}
-                {visibleColumns.actions && <th className="py-3 px-3.5 text-right sticky right-0 bg-slate-50 z-10 shadow-l">Actions</th>}
+                {visibleColumns.actions && (
+                  <th className="py-3 px-3.5 text-right sticky right-0 bg-slate-50 z-30 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -513,6 +588,13 @@ function ProspectsContent() {
                     key={p.id}
                     className="hover:bg-slate-50/70 transition-colors group"
                   >
+                    {/* 0. Company Logo (Sticky on horizontal scroll) */}
+                    {visibleColumns.logo && (
+                      <td className="py-2 px-2.5 text-center sticky left-0 z-20 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-200/80 w-[64px] min-w-[64px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                        <ProspectLogoCell prospect={p} onClick={() => setSelectedProspect(p)} />
+                      </td>
+                    )}
+
                     {/* 1. Company Name */}
                     {visibleColumns.companyName && (
                       <td className="py-2.5 px-3.5">
@@ -759,7 +841,7 @@ function ProspectsContent() {
 
                     {/* 15. Actions */}
                     {visibleColumns.actions && (
-                      <td className="py-2.5 px-3.5 text-right sticky right-0 bg-white group-hover:bg-slate-50 transition-colors shadow-l">
+                      <td className="py-2.5 px-3.5 text-right sticky right-0 bg-white group-hover:bg-slate-50 transition-colors z-20 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setSelectedProspect(p)}
@@ -810,10 +892,13 @@ function ProspectsContent() {
           <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
             <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-              <div>
-                <h3 className="font-bold text-base text-slate-900">{selectedProspect.name}</h3>
-                <div className="text-xs text-slate-500">
-                  {selectedProspect.industry} • {selectedProspect.country}
+              <div className="flex items-center gap-3">
+                <ProspectLogoCell prospect={selectedProspect} size="lg" />
+                <div>
+                  <h3 className="font-bold text-base text-slate-900">{selectedProspect.name}</h3>
+                  <div className="text-xs text-slate-500">
+                    {selectedProspect.industry} • {selectedProspect.country}
+                  </div>
                 </div>
               </div>
               <button

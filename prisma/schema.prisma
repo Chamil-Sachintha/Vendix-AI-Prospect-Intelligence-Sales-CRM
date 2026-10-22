@@ -30,6 +30,7 @@ model Company {
   tradingName         String?
   registrationNo      String?
   website             String?
+  logoUrl             String?
   linkedinUrl         String?
   industry            String   @default("FMCG & Retail")
   subIndustry         String?

@@ -24,6 +24,7 @@ export function ProspectModal({
     // Section 1: Company Details
     name: "",
     website: "",
+    logoUrl: "",
     industry: "FMCG & Retail",
     country: "Sri Lanka",
     companySize: "100-500",
@@ -51,6 +52,7 @@ export function ProspectModal({
       setForm({
         name: initialData.name || "",
         website: initialData.website || "",
+        logoUrl: initialData.logoUrl || "",
         industry: initialData.industry || "FMCG & Retail",
         country: initialData.country || "Sri Lanka",
         companySize: initialData.employeeRange || initialData.sizeCategory || "",
@@ -77,6 +79,7 @@ export function ProspectModal({
       setForm({
         name: "",
         website: "",
+        logoUrl: "",
         industry: "FMCG & Retail",
         country: "Sri Lanka",
         companySize: "100-500",
@@ -210,6 +213,17 @@ export function ProspectModal({
                   placeholder="https://example.com"
                   value={form.website}
                   onChange={(e) => setForm({ ...form, website: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Company Logo URL (Optional)</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/logo.png"
+                  value={form.logoUrl}
+                  onChange={(e) => setForm({ ...form, logoUrl: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
                 />
               </div>
