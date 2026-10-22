@@ -321,15 +321,20 @@ export function ProspectModal({
         )}
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6 text-xs">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 sm:p-7 space-y-8 text-xs">
           {/* SECTION 1: COMPANY DETAILS */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs pb-1 border-b border-slate-100">
-              <Building2 className="h-4 w-4 text-[#0033BF]" />
-              1. Company Details
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-200/80">
+              <div className="p-1.5 rounded-xl bg-blue-50 text-[#0033BF]">
+                <Building2 className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-[13px]">1. Company Details</h3>
+                <p className="text-[11px] text-slate-400">Core company profile, scale, and existing SFA software</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-slate-700 font-semibold mb-1">
                   Company Name <span className="text-rose-500">*</span>
@@ -516,28 +521,38 @@ export function ProspectModal({
             </div>
           </div>
 
-          {/* SECTION 2: DECISION-MAKER DETAILS */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-              <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
-                <Users className="h-4 w-4 text-[#0033BF]" />
-                <span>2. Decision-Makers ({contacts.length})</span>
+          {/* SECTION 2: DECISION-MAKERS */}
+          <div className="pt-6 border-t border-slate-200/80 space-y-4">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-xl bg-indigo-50 text-indigo-600">
+                  <Users className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-[13px] flex items-center gap-2">
+                    <span>2. Decision-Makers</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      {contacts.length}
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-400">Key executives and purchasing stakeholders</p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={addDecisionMaker}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#0033BF] text-xs font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0033BF] text-xs font-semibold transition-colors cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" />
                 <span>Add Decision-Maker</span>
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {contacts.map((contact, index) => (
                 <div
                   key={index}
-                  className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-3"
+                  className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-3.5"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -571,7 +586,7 @@ export function ProspectModal({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                       <label className="block text-slate-700 font-semibold mb-1">
                         Full Name {index === 0 && <span className="text-slate-400 font-normal">(Optional)</span>}
@@ -644,13 +659,18 @@ export function ProspectModal({
           </div>
 
           {/* SECTION 3: PROSPECT TRACKING */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs pb-1 border-b border-slate-100">
-              <CalendarCheck className="h-4 w-4 text-emerald-600" />
-              3. Status & Follow-up Tracking
+          <div className="pt-6 border-t border-slate-200/80 space-y-4">
+            <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-200/80">
+              <div className="p-1.5 rounded-xl bg-emerald-50 text-emerald-600">
+                <CalendarCheck className="h-4 w-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-[13px]">3. Status & Follow-up Tracking</h3>
+                <p className="text-[11px] text-slate-400">Pipeline progression, scheduled follow-ups, and engagement notes</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">Prospect Status</label>
                 <select
@@ -700,18 +720,18 @@ export function ProspectModal({
           </div>
 
           {/* Footer Buttons */}
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-5 mt-6 border-t border-slate-200 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+              className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-[#0033BF] hover:bg-[#2768FF] text-white font-semibold transition-colors shadow-xs"
+              className="px-5 py-2 rounded-xl bg-[#0033BF] hover:bg-[#2768FF] text-white font-semibold transition-colors shadow-xs cursor-pointer"
             >
               {loading ? "Saving..." : initialData ? "Save Changes" : "Add Prospect"}
             </button>
