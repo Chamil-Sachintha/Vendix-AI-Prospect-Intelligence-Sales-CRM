@@ -177,6 +177,7 @@ export async function POST(request: Request) {
             companyId: company.id,
             fullName: c.fullName.trim(),
             jobTitle: c.jobTitle?.trim() || "Decision-Maker",
+            avatarUrl: c.avatarUrl?.trim() || null,
             businessEmail: c.businessEmail?.trim() || null,
             businessPhone: c.businessPhone?.trim() || null,
             linkedinUrl: c.linkedinUrl?.trim() || null,

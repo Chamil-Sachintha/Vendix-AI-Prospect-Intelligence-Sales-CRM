@@ -144,15 +144,41 @@ export default function ContactsPage() {
               {contacts.map((ct) => (
                 <tr key={ct.id} className="hover:bg-slate-50/70 transition-colors">
                   <td className="py-3.5 px-4">
-                    <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-                      {ct.fullName}
-                      {ct.isPrimary && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-[#0033BF]">
-                          Primary
-                        </span>
-                      )}
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-full border border-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
+                        {ct.avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={ct.avatarUrl}
+                            alt={ct.fullName}
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-[11px]">
+                            {(ct.fullName || "DM")
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .slice(0, 2)
+                              .join("")
+                              .toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                          {ct.fullName}
+                          {ct.isPrimary && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-[#0033BF]">
+                              Primary
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-slate-500">{ct.jobTitle}</div>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-slate-500">{ct.jobTitle}</div>
                   </td>
 
                   <td className="py-3.5 px-4">

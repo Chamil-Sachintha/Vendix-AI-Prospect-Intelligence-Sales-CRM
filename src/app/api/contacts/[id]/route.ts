@@ -26,6 +26,7 @@ export async function PUT(
       data: {
         fullName: body.fullName?.trim() || existing.fullName,
         jobTitle: body.jobTitle?.trim() || existing.jobTitle,
+        avatarUrl: body.avatarUrl !== undefined ? (body.avatarUrl?.trim() || null) : existing.avatarUrl,
         department: body.department !== undefined ? body.department : existing.department,
         seniorityLevel: body.seniorityLevel !== undefined ? body.seniorityLevel : existing.seniorityLevel,
         roleInPurchasing: body.roleInPurchasing || existing.roleInPurchasing,

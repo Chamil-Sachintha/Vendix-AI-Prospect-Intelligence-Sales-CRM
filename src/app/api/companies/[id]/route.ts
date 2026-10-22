@@ -117,6 +117,7 @@ export async function PUT(
             data: {
               fullName: c.fullName.trim(),
               jobTitle: c.jobTitle?.trim() || "Decision-Maker",
+              avatarUrl: c.avatarUrl !== undefined ? (c.avatarUrl?.trim() || null) : undefined,
               businessEmail: c.businessEmail?.trim() || null,
               businessPhone: c.businessPhone?.trim() || null,
               linkedinUrl: c.linkedinUrl?.trim() || null,
@@ -129,6 +130,7 @@ export async function PUT(
               companyId: id,
               fullName: c.fullName.trim(),
               jobTitle: c.jobTitle?.trim() || "Decision-Maker",
+              avatarUrl: c.avatarUrl?.trim() || null,
               businessEmail: c.businessEmail?.trim() || null,
               businessPhone: c.businessPhone?.trim() || null,
               linkedinUrl: c.linkedinUrl?.trim() || null,

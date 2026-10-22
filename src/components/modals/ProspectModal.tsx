@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, Building2, Users, CalendarCheck, AlertCircle, Upload, Trash2, Image as ImageIcon, Plus } from "lucide-react";
+import { X, Building2, Users, CalendarCheck, AlertCircle, Upload, Trash2, Image as ImageIcon, Plus, User } from "lucide-react";
 import { PROSPECT_STATUSES } from "@/lib/constants";
 
 export interface DecisionMakerItem {
   id?: string;
   fullName: string;
   jobTitle: string;
+  avatarUrl?: string;
   businessEmail: string;
   businessPhone: string;
   linkedinUrl: string;
@@ -36,6 +37,7 @@ export function ProspectModal({
     {
       fullName: "",
       jobTitle: "",
+      avatarUrl: "",
       businessEmail: "",
       businessPhone: "",
       linkedinUrl: "",
@@ -70,6 +72,7 @@ export function ProspectModal({
             id: c.id,
             fullName: c.fullName || "",
             jobTitle: c.jobTitle || "",
+            avatarUrl: c.avatarUrl || "",
             businessEmail: c.businessEmail || "",
             businessPhone: c.businessPhone || "",
             linkedinUrl: c.linkedinUrl || "",
@@ -81,6 +84,7 @@ export function ProspectModal({
           {
             fullName: "",
             jobTitle: "",
+            avatarUrl: "",
             businessEmail: "",
             businessPhone: "",
             linkedinUrl: "",
@@ -114,6 +118,7 @@ export function ProspectModal({
         {
           fullName: "",
           jobTitle: "",
+          avatarUrl: "",
           businessEmail: "",
           businessPhone: "",
           linkedinUrl: "",
@@ -217,6 +222,7 @@ export function ProspectModal({
       {
         fullName: "",
         jobTitle: "",
+        avatarUrl: "",
         businessEmail: "",
         businessPhone: "",
         linkedinUrl: "",
@@ -232,6 +238,7 @@ export function ProspectModal({
           {
             fullName: "",
             jobTitle: "",
+            avatarUrl: "",
             businessEmail: "",
             businessPhone: "",
             linkedinUrl: "",
@@ -246,6 +253,47 @@ export function ProspectModal({
       }
       return filtered;
     });
+  };
+
+  const handleAvatarFileUpload = (index: number, file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setErrorMsg("Please select a valid image file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX_DIM = 160;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          updateDecisionMaker(index, "avatarUrl", canvas.toDataURL("image/webp", 0.85));
+        } else {
+          updateDecisionMaker(index, "avatarUrl", event.target?.result as string);
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   const updateDecisionMaker = (index: number, field: keyof DecisionMakerItem, value: any) => {
@@ -604,6 +652,73 @@ export function ProspectModal({
                         <Trash2 className="h-4 w-4" />
                       </button>
                     )}
+                  </div>
+
+                  {/* Photo / Avatar Section */}
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-slate-200/80">
+                    <div className="relative group/avatar shrink-0">
+                      <div className="h-11 w-11 rounded-full border border-slate-200 bg-slate-50 shadow-2xs overflow-hidden flex items-center justify-center text-slate-400">
+                        {contact.avatarUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={contact.avatarUrl}
+                            alt={contact.fullName || "Decision-Maker"}
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <User className="h-5 w-5 text-slate-400" />
+                        )}
+                      </div>
+                      <label className="absolute inset-0 rounded-full flex items-center justify-center bg-slate-900/50 text-white opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer">
+                        <Upload className="h-3.5 w-3.5" />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleAvatarFileUpload(index, file);
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <label className="cursor-pointer text-[11px] font-semibold text-[#0033BF] hover:underline flex items-center gap-1">
+                          <Upload className="h-3 w-3" />
+                          <span>{contact.avatarUrl ? "Change Photo" : "Upload Photo"}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleAvatarFileUpload(index, file);
+                            }}
+                          />
+                        </label>
+                        {contact.avatarUrl && (
+                          <button
+                            type="button"
+                            onClick={() => updateDecisionMaker(index, "avatarUrl", "")}
+                            className="text-[11px] text-rose-500 hover:underline cursor-pointer"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <input
+                        type="url"
+                        placeholder="Or paste photo URL (https://...)"
+                        value={contact.avatarUrl || ""}
+                        onChange={(e) => updateDecisionMaker(index, "avatarUrl", e.target.value)}
+                        className="mt-1 w-full px-2.5 py-1 text-[11px] rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#0033BF]"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

@@ -114,6 +114,7 @@ model Contact {
   company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   fullName         String
   jobTitle         String
+  avatarUrl        String?
   department       String?
   seniorityLevel   String?   // C-Level, VP/Director, Head, Manager, Lead, Senior, Executive
   roleInPurchasing String    @default("INFLUENCER") // DECISION_MAKER, INFLUENCER, TECHNICAL_EVALUATOR, USER, PROCUREMENT, UNKNOWN

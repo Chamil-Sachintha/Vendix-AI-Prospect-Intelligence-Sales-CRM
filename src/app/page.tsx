@@ -172,6 +172,7 @@ function ProspectsContent() {
   const [contactForm, setContactForm] = useState({
     fullName: "",
     jobTitle: "",
+    avatarUrl: "",
     department: "",
     roleInPurchasing: "DECISION_MAKER",
     businessEmail: "",
@@ -317,6 +318,7 @@ function ProspectsContent() {
       jobTitle: "",
       department: "",
       roleInPurchasing: "DECISION_MAKER",
+      avatarUrl: "",
       businessEmail: "",
       businessPhone: "",
       linkedinUrl: "",
@@ -330,6 +332,7 @@ function ProspectsContent() {
     setContactForm({
       fullName: ct.fullName || "",
       jobTitle: ct.jobTitle || "",
+      avatarUrl: ct.avatarUrl || "",
       department: ct.department || "",
       roleInPurchasing: ct.roleInPurchasing || "DECISION_MAKER",
       businessEmail: ct.businessEmail || "",
@@ -1208,6 +1211,65 @@ function ProspectsContent() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       <div className="sm:col-span-2">
                         <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
+                          Profile Photo / Picture (Optional)
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="url"
+                            placeholder="Paste photo URL (https://...)"
+                            value={contactForm.avatarUrl || ""}
+                            onChange={(e) => setContactForm({ ...contactForm, avatarUrl: e.target.value })}
+                            className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white focus:border-[#0033BF] focus:outline-none"
+                          />
+                          <label className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 cursor-pointer shrink-0">
+                            Upload Photo
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  const img = new Image();
+                                  img.onload = () => {
+                                    const MAX_DIM = 160;
+                                    let width = img.width;
+                                    let height = img.height;
+                                    if (width > height) {
+                                      if (width > MAX_DIM) {
+                                        height = Math.round((height * MAX_DIM) / width);
+                                        width = MAX_DIM;
+                                      }
+                                    } else {
+                                      if (height > MAX_DIM) {
+                                        width = Math.round((width * MAX_DIM) / height);
+                                        height = MAX_DIM;
+                                      }
+                                    }
+                                    const canvas = document.createElement("canvas");
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    const ctx = canvas.getContext("2d");
+                                    if (ctx) {
+                                      ctx.drawImage(img, 0, 0, width, height);
+                                      setContactForm((prev) => ({ ...prev, avatarUrl: canvas.toDataURL("image/webp", 0.85) }));
+                                    } else {
+                                      setContactForm((prev) => ({ ...prev, avatarUrl: ev.target?.result as string }));
+                                    }
+                                  };
+                                  img.src = ev.target?.result as string;
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-[11px] font-bold text-slate-700 mb-0.5">
                           Full Name <span className="text-rose-500">*</span>
                         </label>
                         <input
@@ -1376,8 +1438,22 @@ function ProspectsContent() {
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-start gap-2.5">
-                              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                                {contactInitials}
+                              <div className="h-9 w-9 rounded-xl border border-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
+                                {ct.avatarUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={ct.avatarUrl}
+                                    alt={ct.fullName}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLElement).style.display = "none";
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-xs">
+                                    {contactInitials}
+                                  </div>
+                                )}
                               </div>
                               <div>
                                 <div className="flex items-center flex-wrap gap-1.5">
