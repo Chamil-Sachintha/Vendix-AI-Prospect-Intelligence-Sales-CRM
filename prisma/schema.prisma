@@ -1,0 +1,337 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      String   @default("BUSINESS_DEVELOPMENT") // ADMIN, SALES_MANAGER, BUSINESS_DEVELOPMENT, READ_ONLY_ANALYST
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedCompanies   Company[]          @relation("AssignedOwner")
+  assignedContacts    Contact[]          @relation("ContactOwner")
+  opportunities       Opportunity[]      @relation("OpportunityOwner")
+  outreachActivities  OutreachActivity[] @relation("OutreachOwner")
+  tasks               TaskFollowUp[]     @relation("TaskOwner")
+  savedViews          SavedView[]
+}
+
+model Company {
+  id                  String   @id @default(cuid())
+  name                String
+  tradingName         String?
+  registrationNo      String?
+  website             String?
+  linkedinUrl         String?
+  industry            String   @default("FMCG & Retail")
+  subIndustry         String?
+  country             String   @default("Sri Lanka")
+  city                String?
+  operatingRegions    String?
+  hqAddress           String?
+  yearEstablished     Int?
+  description         String?
+  parentCompany       String?
+  subsidiaries        String?
+  slraMember          Boolean  @default(false)
+  source              String   @default("Manual Research")
+  lastVerifiedDate    DateTime?
+  assignedOwnerId     String?
+  assignedOwner       User?    @relation("AssignedOwner", fields: [assignedOwnerId], references: [id], onDelete: SetNull)
+
+  // Size & Operations
+  employeeCount       Int?
+  employeeRange       String?  // e.g. "500-1000"
+  annualRevenue       Float?
+  revenueRange        String?  // e.g. "$10M - $50M" or "LKR 500M - 1B"
+  branchesCount       Int?
+  distributorsCount   Int?
+  fieldSalesRepsCount Int?
+  countriesServed     Int?     @default(1)
+  distributionModel   String?  // e.g. "Direct Store Delivery", "Wholesale Distributors", "Hybrid Van Sales"
+  mainProducts        String?
+  customerSegments    String?  // e.g. "General Trade, Modern Trade, HoReCa"
+  geographicCoverage  String?  // e.g. "Island-wide", "Western Province", "Regional"
+  businessMaturity    String   @default("ESTABLISHED") // STARTUP, GROWING, ESTABLISHED, ENTERPRISE
+  sizeCategory        String   @default("MEDIUM")      // MICRO, SMALL, MEDIUM, LARGE, ENTERPRISE
+  isEstimated         Boolean  @default(false)
+  estimatesSource     String?
+  estimatesVerifiedAt DateTime?
+
+  // Sales Operation Profile (Vendix SFA Fit)
+  hasFieldSalesTeam       String  @default("Yes") // Yes, No, Unknown
+  sellsThroughDistributors String @default("Yes") // Yes, No, Unknown
+  regularRetailVisits     String  @default("Yes") // Yes, No, Unknown
+  vanSalesOrPreSales      String  @default("Pre-Sales") // Van Sales, Pre-Sales, Both, Unknown
+  managesTerritoriesRoutes String @default("Yes") // Yes, No, Unknown
+  orderTakingInField      String  @default("Yes") // Yes, No, Unknown
+  managesCollectionsCash  String  @default("Yes") // Yes, No, Unknown
+  distributesPhysicalProducts String @default("Yes") // Yes, No, Unknown
+  requiresOfflineMobile   String  @default("Yes") // Yes, No, Unknown
+  usesExistingSoftware    String  @default("Yes") // Yes, No, Unknown
+  operationalChallenges   String?
+  sfaComplexity           String  @default("MEDIUM") // LOW, MEDIUM, HIGH, VERY_HIGH
+
+  // Status & Intent
+  qualificationStatus String   @default("RESEARCHING") // UNQUALIFIED, RESEARCHING, QUALIFIED, NURTURING, DISQUALIFIED
+  intentScore         Int      @default(0) // 0 - 100
+  intentLevel         String   @default("LOW") // HIGH, MEDIUM, LOW
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  contacts            Contact[]
+  softwareRecords     SoftwareRecord[]
+  intentSignals       IntentSignal[]
+  qualification       Qualification?
+  opportunities       Opportunity[]
+  outreachActivities  OutreachActivity[]
+  tasks               TaskFollowUp[]
+  timelineEvents      TimelineEvent[]
+}
+
+model Contact {
+  id               String    @id @default(cuid())
+  companyId        String
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  fullName         String
+  jobTitle         String
+  department       String?
+  seniorityLevel   String?   // C-Level, VP/Director, Head, Manager, Lead, Senior, Executive
+  roleInPurchasing String    @default("INFLUENCER") // DECISION_MAKER, INFLUENCER, TECHNICAL_EVALUATOR, USER, PROCUREMENT, UNKNOWN
+  businessEmail    String?
+  businessPhone    String?
+  linkedinUrl      String?
+  preferredChannel String?   @default("EMAIL") // EMAIL, PHONE, LINKEDIN, WHATSAPP, MEETING
+  country          String?   @default("Sri Lanka")
+  timezone         String?   @default("Asia/Colombo")
+  source           String?   @default("LinkedIn Research")
+  isVerified       Boolean   @default(false)
+  verifiedAt       DateTime?
+  assignedOwnerId  String?
+  assignedOwner    User?     @relation("ContactOwner", fields: [assignedOwnerId], references: [id], onDelete: SetNull)
+  isPrimary        Boolean   @default(false)
+  notes            String?
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  opportunities    Opportunity[]
+  outreachActivities OutreachActivity[]
+  tasks            TaskFollowUp[]
+  timelineEvents   TimelineEvent[]
+}
+
+model SoftwareRecord {
+  id                   String    @id @default(cuid())
+  companyId            String
+  company              Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category             String    @default("SFA") // SFA, CRM, ERP, DMS, POS, BI, FIELD_SERVICE, OTHER
+  productName          String
+  vendorName           String
+  deploymentType       String    @default("CLOUD") // CLOUD, ON_PREMISES, HYBRID, UNKNOWN
+  status               String    @default("CURRENTLY_USING") // CURRENTLY_USING, EVALUATING, PREVIOUSLY_USED, REPLACING, DISCONTINUED, UNKNOWN
+  implementationYear   Int?
+  renewalDate          DateTime?
+  knownIntegrations    String?
+  knownLimitations     String?
+  evidenceUrl          String?
+  evidenceDescription  String?
+  evidencePublishedAt  DateTime?
+  lastVerifiedAt       DateTime?
+  confidence           String    @default("CONFIRMED") // CONFIRMED, STRONG_EVIDENCE, UNVERIFIED, SPECULATIVE
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model Competitor {
+  id                 String   @id @default(cuid())
+  vendorName         String
+  productName        String
+  website            String?
+  targetIndustries   String?
+  positioning        String?
+  knownFeatures      String?
+  customerReferences String?
+  caseStudies        String?
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model IntentSignal {
+  id                     String    @id @default(cuid())
+  companyId              String
+  company                Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  category               String    // COMPETITOR_SFA_IMPL, SFA_REPLACEMENT_UPGRADE, NEW_SFA_PROJECT, DIGITAL_TRANSFORMATION, FIELD_SALES_HIRING, DISTRIBUTION_EXPANSION, PRODUCT_GEO_LAUNCH, ERP_MIGRATION, SALES_OPS_HIRING, OPERATIONAL_CHALLENGES, WEBSITE_ENGAGEMENT, DEMO_PRICING_REQUEST, INBOUND_ENQUIRY, INDUSTRY_EVENT, OTHER
+  description            String
+  dateObserved           DateTime  @default(now())
+  sourceUrl              String?
+  sourceType             String?   // Direct Observation, Job Board, Press Release, LinkedIn Post, Website Form, Inbound Call, Vendor Case Study
+  relevance              String    @default("High") // High, Medium, Low
+  strength               String    @default("HIGH") // HIGH, MEDIUM, LOW
+  confidence             String    @default("CONFIRMED") // CONFIRMED, STRONG_EVIDENCE, UNVERIFIED, SPECULATIVE
+  recencyMonths          Int       @default(1)
+  assignedReviewerId     String?
+  verificationStatus     String    @default("VERIFIED") // VERIFIED, UNVERIFIED, DISQUALIFIED
+  followUpRecommendation String?
+  scoreContribution      Float     @default(15.0)
+
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}
+
+model Qualification {
+  id                     String   @id @default(cuid())
+  companyId              String   @unique
+  company                Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  industryFit            String?  @default("High") // High, Medium, Low
+  companySizeFit         String?  @default("High") // High, Medium, Low
+  fieldSalesFit          String?  @default("High") // High, Medium, Low
+  techMaturity           String?  @default("Medium") // High, Medium, Low
+  painPoint              String?
+  buyingTrigger          String?
+  budgetStatus           String   @default("POSSIBLE") // UNKNOWN, NOT_DISCUSSED, POSSIBLE, CONFIRMED, UNAVAILABLE
+  decisionMakerIdentified Boolean  @default(false)
+  purchaseTimeline       String?  // Immediate (<1 mo), Q1/Q2 (1-3 mo), 3-6 months, Next Year, Unknown
+  vendorContractStatus   String?  // Expiring soon, Mid-contract, No contract, Month-to-month
+  potentialUsers         Int?
+  estimatedAcv           Float?
+  expectedComplexity     String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  notes                  String?
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model PipelineStage {
+  id          String        @id @default(cuid())
+  name        String
+  order       Int           @unique
+  color       String        @default("#2768FF")
+  definition  String?
+  isWon       Boolean       @default(false)
+  isLost      Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  opportunities Opportunity[]
+}
+
+model Opportunity {
+  id                   String        @id @default(cuid())
+  name                 String
+  companyId            String
+  company              Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  primaryContactId     String?
+  primaryContact       Contact?      @relation(fields: [primaryContactId], references: [id], onDelete: SetNull)
+  productInterest      String        @default("Vendix Enterprise SFA")
+  potentialUsers       Int?
+  estimatedAcv         Float         @default(0)
+  currency             String        @default("LKR") // LKR, USD, EUR, GBP, AED
+  ownerId              String?
+  owner                User?         @relation("OpportunityOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  expectedCloseDate    DateTime?
+  probability          Int           @default(20) // 0-100%
+  stageId              String
+  stage                PipelineStage @relation(fields: [stageId], references: [id], onDelete: Restrict)
+  painPoints           String?
+  competitorEvaluated  String?
+  nextAction           String?
+  lostReason           String?
+  wonDate              DateTime?
+  notes                String?
+
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  outreachActivities   OutreachActivity[]
+  tasks                TaskFollowUp[]
+  timelineEvents       TimelineEvent[]
+}
+
+model OutreachActivity {
+  id               String       @id @default(cuid())
+  companyId        String
+  company          Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contactId        String?
+  contact          Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  opportunityId    String?
+  opportunity      Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  channel          String       @default("EMAIL") // EMAIL, PHONE, LINKEDIN, WHATSAPP, MEETING, EVENT, OTHER
+  campaign         String?
+  messageSummary   String
+  outcome          String?
+  responseReceived Boolean      @default(false)
+  outreachStatus   String       @default("CONTACTED") // NOT_CONTACTED, READY_TO_CONTACT, CONTACTED, AWAITING_RESPONSE, POSITIVE_RESPONSE, NEUTRAL_RESPONSE, NEGATIVE_RESPONSE, FOLLOW_UP_REQUIRED, MEETING_BOOKED, DO_NOT_CONTACT
+  nextAction       String?
+  nextFollowUpDate DateTime?
+  ownerId          String?
+  owner            User?        @relation("OutreachOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model TaskFollowUp {
+  id               String       @id @default(cuid())
+  title            String
+  type             String       @default("TASK") // TASK, CALL, EMAIL, MEETING, DEMO, PROPOSAL, NOTE, FOLLOW_UP
+  dueDate          DateTime
+  isCompleted      Boolean      @default(false)
+  completedAt      DateTime?
+  priority         String       @default("MEDIUM") // HIGH, MEDIUM, LOW
+  notes            String?
+  companyId        String?
+  company          Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contactId        String?
+  contact          Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  opportunityId    String?
+  opportunity      Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  assignedOwnerId  String?
+  assignedOwner    User?        @relation("TaskOwner", fields: [assignedOwnerId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model TimelineEvent {
+  id            String       @id @default(cuid())
+  companyId     String?
+  company       Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contactId     String?
+  contact       Contact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  opportunityId String?
+  opportunity   Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  actorName     String       @default("System")
+  eventType     String       // COMPANY_CREATED, SOFTWARE_ADDED, INTENT_SIGNAL_LOGGED, OUTREACH_LOGGED, STAGE_CHANGED, TASK_COMPLETED, NOTE_ADDED
+  description   String
+  metadataJson  String?
+
+  createdAt     DateTime     @default(now())
+}
+
+model SavedView {
+  id          String   @id @default(cuid())
+  name        String
+  category    String   @default("prospects") // prospects, companies, pipeline, followups
+  filtersJson String
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  isPreset    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model AppSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  valueJson String
+  updatedAt DateTime @updatedAt
+}
