@@ -1041,18 +1041,38 @@ function ProspectsContent() {
                       </a>
                     </div>
                   )}
-                  {selectedProspect.companyEmail && (
-                    <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                      <span className="text-slate-400">Company Email:</span>
-                      <a
-                        href={`mailto:${selectedProspect.companyEmail}`}
-                        className="text-[#0033BF] hover:underline flex items-center gap-1 font-semibold"
-                      >
-                        <Mail className="h-3 w-3 text-slate-400" />
-                        {selectedProspect.companyEmail}
-                      </a>
-                    </div>
-                  )}
+                  {selectedProspect.companyEmail &&
+                    selectedProspect.companyEmail
+                      .split(/[;,]+/)
+                      .map((e: string) => e.trim())
+                      .filter(Boolean)
+                      .map((email: string, idx: number, arr: string[]) => (
+                        <div key={idx} className="flex justify-between items-center pt-1 border-t border-slate-100">
+                          <span className="text-slate-400">
+                            {arr.length > 1 ? `Company Email ${idx + 1}:` : "Company Email:"}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <a
+                              href={`mailto:${email}`}
+                              className="text-[#0033BF] hover:underline flex items-center gap-1 font-semibold"
+                            >
+                              <Mail className="h-3 w-3 text-slate-400" />
+                              {email}
+                            </a>
+                            <button
+                              onClick={() => copyToClipboard(email)}
+                              title="Copy Email"
+                              className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                            >
+                              {copiedEmail === email ? (
+                                <Check className="h-3 w-3 text-emerald-600" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                   {selectedProspect.website && (
                     <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                       <span className="text-slate-400">Website:</span>

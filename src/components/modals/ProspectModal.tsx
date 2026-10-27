@@ -474,14 +474,50 @@ export function ProspectModal({
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">Company General Email</label>
-                <input
-                  type="email"
-                  placeholder="info@company.com"
-                  value={form.companyEmail}
-                  onChange={(e) => setForm({ ...form, companyEmail: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-                />
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-slate-700 font-semibold">Company General Email</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = form.companyEmail ? form.companyEmail.split(/[;,]+/).map((s) => s.trim()) : [""];
+                      setForm({ ...form, companyEmail: [...current, ""].join("; ") });
+                    }}
+                    className="text-[11px] font-semibold text-[#0033BF] hover:underline flex items-center gap-0.5 cursor-pointer"
+                  >
+                    <Plus className="h-3 w-3" />
+                    Add Email
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {(form.companyEmail ? form.companyEmail.split(";") : [""]).map((emailVal, idx, arr) => (
+                    <div key={idx} className="flex items-center gap-1.5">
+                      <input
+                        type="email"
+                        placeholder={idx === 0 ? "info@company.com" : `Additional email #${idx + 1}`}
+                        value={emailVal.trim()}
+                        onChange={(e) => {
+                          const updated = [...arr];
+                          updated[idx] = e.target.value;
+                          setForm({ ...form, companyEmail: updated.join("; ") });
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+                      />
+                      {arr.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = arr.filter((_, i) => i !== idx);
+                            setForm({ ...form, companyEmail: updated.join("; ") });
+                          }}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer shrink-0"
+                          title="Remove email"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div>
