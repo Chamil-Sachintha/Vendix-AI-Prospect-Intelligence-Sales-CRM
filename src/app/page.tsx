@@ -66,15 +66,9 @@ function ProspectLogoCell({
       : (prospect.name || "CO").slice(0, 2).toUpperCase();
 
   const containerSizes = {
-    sm: "h-7 w-7 rounded-lg text-[10px]",
-    md: "h-9 w-9 rounded-xl text-xs",
-    lg: "h-11 w-11 rounded-2xl text-sm",
-  };
-
-  const imgSizes = {
-    sm: "h-5 w-5",
-    md: "h-6 w-6",
-    lg: "h-8 w-8",
+    sm: "h-9 w-9 rounded-lg text-xs",
+    md: "h-12 w-14 rounded-xl text-xs",
+    lg: "h-16 w-18 rounded-2xl text-base",
   };
 
   return (
@@ -88,7 +82,7 @@ function ProspectLogoCell({
         <img
           src={logoSrc}
           alt={prospect.name}
-          className={`${imgSizes[size]} object-contain p-0.5 rounded-md transition-transform group-hover/logo:scale-110`}
+          className="h-full w-full object-contain p-1 rounded-md transition-transform group-hover/logo:scale-105"
           onError={() => setImgError(true)}
           loading="lazy"
         />
@@ -679,7 +673,7 @@ function ProspectsContent() {
             <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 {visibleColumns.logo && (
-                  <th className="py-3 px-2 text-center sticky top-0 left-0 z-30 bg-slate-50 border-r border-slate-200/80 w-[54px] min-w-[54px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <th className="py-3 px-2.5 text-center sticky top-0 left-0 z-30 bg-slate-50 border-r border-slate-200/80 w-[76px] min-w-[76px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                     Logo
                   </th>
                 )}
@@ -722,7 +716,7 @@ function ProspectsContent() {
                   >
                     {/* 0. Company Logo (Sticky on horizontal scroll) */}
                     {visibleColumns.logo && (
-                      <td className="py-2 px-2 text-center sticky left-0 z-20 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-200/80 w-[54px] min-w-[54px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                      <td className="py-2 px-2.5 text-center sticky left-0 z-20 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-200/80 w-[76px] min-w-[76px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                         <ProspectLogoCell prospect={p} onClick={() => setSelectedProspect(p)} />
                       </td>
                     )}

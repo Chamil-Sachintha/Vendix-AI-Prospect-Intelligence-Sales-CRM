@@ -518,7 +518,7 @@ export function ProspectModal({
 
                 {form.logoUrl ? (
                   <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 bg-slate-50/70">
-                    <div className="h-12 w-12 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
+                    <div className="h-16 w-20 rounded-xl bg-white border border-slate-200 p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={form.logoUrl}
