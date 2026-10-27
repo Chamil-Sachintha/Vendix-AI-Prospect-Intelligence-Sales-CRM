@@ -977,7 +977,7 @@ function ProspectsContent() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-100"
+            className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-100"
           >
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -1355,8 +1355,8 @@ function ProspectsContent() {
                   </form>
                 )}
 
-                {/* List of Decision-Makers */}
-                <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                {/* List of Decision-Makers (3-column card grid) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {(selectedProspect.contacts || [])
                     .map((ct: any) => {
                       const roleConfig = ROLE_BADGES[ct.roleInPurchasing] || {
@@ -1374,15 +1374,49 @@ function ProspectsContent() {
                       return (
                         <div
                           key={ct.id}
-                          className={`p-3 rounded-xl border transition-all ${
+                          className={`p-3.5 rounded-2xl border flex flex-col justify-between transition-all ${
                             ct.isPrimary
                               ? "bg-blue-50/30 border-blue-200 shadow-2xs"
                               : "bg-white border-slate-200 hover:border-slate-300"
                           }`}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-start gap-2.5">
-                              <div className="h-9 w-9 rounded-xl border border-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
+                          <div>
+                            {/* Top Row: Badges + Actions */}
+                            <div className="flex items-center justify-between gap-1.5 mb-2.5">
+                              <div className="flex items-center flex-wrap gap-1">
+                                {ct.isPrimary && (
+                                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-blue-100 text-[#0033BF] border border-blue-200">
+                                    ★ Primary
+                                  </span>
+                                )}
+                                <span
+                                  className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md border ${roleConfig.class}`}
+                                >
+                                  {roleConfig.label}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-0.5 shrink-0">
+                                <button
+                                  onClick={() => handleOpenEditContact(ct)}
+                                  title="Edit Decision-Maker"
+                                  className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteContact(ct.id)}
+                                  title="Delete Decision-Maker"
+                                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Avatar + Name + Job Title */}
+                            <div className="flex flex-col items-center text-center space-y-2 py-1">
+                              <div className="h-14 w-14 rounded-2xl border border-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                                 {ct.avatarUrl ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img
@@ -1394,26 +1428,17 @@ function ProspectsContent() {
                                     }}
                                   />
                                 ) : (
-                                  <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-xs">
+                                  <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-sm">
                                     {contactInitials}
                                   </div>
                                 )}
                               </div>
-                              <div>
-                                <div className="flex items-center flex-wrap gap-1.5">
-                                  <span className="font-bold text-slate-900 text-xs">{ct.fullName}</span>
-                                  {ct.isPrimary && (
-                                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-100 text-[#0033BF] border border-blue-200">
-                                      ★ Primary
-                                    </span>
-                                  )}
-                                  <span
-                                    className={`text-[9px] font-semibold px-1.5 py-0.2 rounded border ${roleConfig.class}`}
-                                  >
-                                    {roleConfig.label}
-                                  </span>
+
+                              <div className="space-y-0.5">
+                                <div className="font-bold text-slate-900 text-xs leading-snug">
+                                  {ct.fullName}
                                 </div>
-                                <div className="text-[11px] font-medium text-slate-600 mt-0.5">
+                                <div className="text-[11px] font-medium text-slate-600 leading-snug">
                                   {ct.jobTitle}
                                   {ct.department && (
                                     <span className="text-slate-400 font-normal"> • {ct.department}</span>
@@ -1421,41 +1446,24 @@ function ProspectsContent() {
                                 </div>
                               </div>
                             </div>
-
-                            {/* Contact Action Buttons */}
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                onClick={() => handleOpenEditContact(ct)}
-                                title="Edit Decision-Maker"
-                                className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-                              >
-                                <Edit className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteContact(ct.id)}
-                                title="Delete Decision-Maker"
-                                className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
-                            </div>
                           </div>
 
-                          {/* Email, Phone, LinkedIn Links */}
-                          <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                          {/* Contact Links Footer */}
+                          <div className="mt-3 pt-2.5 border-t border-slate-100 space-y-1.5 text-[11px]">
                             {ct.businessEmail && (
-                              <div className="flex items-center gap-1 text-slate-600">
+                              <div className="flex items-center justify-between gap-1 text-slate-600">
                                 <a
                                   href={`mailto:${ct.businessEmail}`}
-                                  className="text-[#0033BF] hover:underline flex items-center gap-1 font-medium"
+                                  className="text-[#0033BF] hover:underline flex items-center gap-1.5 font-medium truncate"
+                                  title={ct.businessEmail}
                                 >
-                                  <Mail className="h-3 w-3 text-slate-400" />
-                                  {ct.businessEmail}
+                                  <Mail className="h-3 w-3 text-slate-400 shrink-0" />
+                                  <span className="truncate">{ct.businessEmail}</span>
                                 </a>
                                 <button
                                   onClick={() => copyToClipboard(ct.businessEmail)}
                                   title="Copy Email"
-                                  className="text-slate-400 hover:text-slate-600 ml-0.5"
+                                  className="text-slate-400 hover:text-slate-600 shrink-0 cursor-pointer"
                                 >
                                   {copiedEmail === ct.businessEmail ? (
                                     <Check className="h-3 w-3 text-emerald-600" />
@@ -1469,40 +1477,44 @@ function ProspectsContent() {
                             {ct.businessPhone && (
                               <a
                                 href={`tel:${ct.businessPhone}`}
-                                className="text-slate-600 hover:text-[#0033BF] flex items-center gap-1 font-medium"
+                                className="text-slate-600 hover:text-[#0033BF] flex items-center gap-1.5 font-medium truncate"
                               >
-                                <Phone className="h-3 w-3 text-slate-400" />
-                                {ct.businessPhone}
+                                <Phone className="h-3 w-3 text-slate-400 shrink-0" />
+                                <span className="truncate">{ct.businessPhone}</span>
                               </a>
                             )}
 
-                            {ct.linkedinUrl && (
-                              <a
-                                href={ct.linkedinUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[#0077B5] hover:underline flex items-center gap-1 font-medium"
-                              >
-                                <LinkedInIcon className="h-3 w-3 fill-current" />
-                                LinkedIn
-                              </a>
-                            )}
+                            <div className="flex items-center justify-between pt-0.5">
+                              {ct.linkedinUrl ? (
+                                <a
+                                  href={ct.linkedinUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[#0077B5] hover:underline flex items-center gap-1 font-medium"
+                                >
+                                  <LinkedInIcon className="h-3 w-3 fill-current shrink-0" />
+                                  <span>LinkedIn</span>
+                                </a>
+                              ) : (
+                                <span />
+                              )}
 
-                            {!ct.isPrimary && (
-                              <button
-                                onClick={() => handleSetPrimaryContact(ct.id)}
-                                className="ml-auto text-[10px] font-semibold text-[#0033BF] hover:underline"
-                              >
-                                Set as primary
-                              </button>
-                            )}
+                              {!ct.isPrimary && (
+                                <button
+                                  onClick={() => handleSetPrimaryContact(ct.id)}
+                                  className="text-[10px] font-semibold text-[#0033BF] hover:underline cursor-pointer"
+                                >
+                                  Set as primary
+                                </button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       );
                     })}
 
                   {(!selectedProspect.contacts || selectedProspect.contacts.length === 0) && (
-                    <div className="p-4 rounded-xl border border-dashed border-slate-200 text-center text-slate-400 text-xs">
+                    <div className="sm:col-span-2 md:col-span-3 p-4 rounded-xl border border-dashed border-slate-200 text-center text-slate-400 text-xs">
                       No decision-makers added yet. Click &ldquo;Add Contact&rdquo; above to log executive contacts.
                     </div>
                   )}
