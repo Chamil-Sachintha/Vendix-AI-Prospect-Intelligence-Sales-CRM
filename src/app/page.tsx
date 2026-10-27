@@ -1080,7 +1080,7 @@ function ProspectsContent() {
               {/* Company Identity & Location */}
               <div className="space-y-1.5">
                 <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-400">
-                  Location & Scale
+                  Location, Scale & Company Contacts
                 </h4>
                 <div className="p-3.5 rounded-2xl bg-white border border-slate-200 space-y-2 text-slate-700">
                   <div className="flex justify-between items-center">
@@ -1100,6 +1100,36 @@ function ProspectsContent() {
                       {selectedProspect.employeeRange || selectedProspect.sizeCategory || "Not specified"}
                     </span>
                   </div>
+                  {selectedProspect.hqAddress && (
+                    <div className="flex justify-between items-start gap-4 pt-1 border-t border-slate-100">
+                      <span className="text-slate-400 shrink-0">Address / City:</span>
+                      <span className="font-medium text-slate-800 text-right">{selectedProspect.hqAddress}</span>
+                    </div>
+                  )}
+                  {selectedProspect.companyPhone && (
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                      <span className="text-slate-400">Company Phone:</span>
+                      <a
+                        href={`tel:${selectedProspect.companyPhone}`}
+                        className="text-slate-800 hover:text-[#0033BF] flex items-center gap-1 font-semibold"
+                      >
+                        <Phone className="h-3 w-3 text-slate-400" />
+                        {selectedProspect.companyPhone}
+                      </a>
+                    </div>
+                  )}
+                  {selectedProspect.companyEmail && (
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                      <span className="text-slate-400">Company Email:</span>
+                      <a
+                        href={`mailto:${selectedProspect.companyEmail}`}
+                        className="text-[#0033BF] hover:underline flex items-center gap-1 font-semibold"
+                      >
+                        <Mail className="h-3 w-3 text-slate-400" />
+                        {selectedProspect.companyEmail}
+                      </a>
+                    </div>
+                  )}
                   {selectedProspect.website && (
                     <div className="flex justify-between items-center pt-1 border-t border-slate-100">
                       <span className="text-slate-400">Website:</span>
@@ -1110,6 +1140,21 @@ function ProspectsContent() {
                         className="text-[#0033BF] hover:underline flex items-center gap-1 font-semibold"
                       >
                         {selectedProspect.website.replace(/^https?:\/\//i, "")}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+                  {selectedProspect.linkedinUrl && (
+                    <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+                      <span className="text-slate-400">Company LinkedIn:</span>
+                      <a
+                        href={selectedProspect.linkedinUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#0077B5] hover:underline flex items-center gap-1 font-semibold"
+                      >
+                        <LinkedInIcon className="h-3 w-3 fill-current" />
+                        LinkedIn Page
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>

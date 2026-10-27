@@ -50,6 +50,10 @@ export function ProspectModal({
     name: "",
     website: "",
     logoUrl: "",
+    companyPhone: "",
+    companyEmail: "",
+    companyLinkedinUrl: "",
+    hqAddress: "",
     industry: "FMCG & Retail",
     country: "Sri Lanka",
     companySize: "100-500",
@@ -97,6 +101,10 @@ export function ProspectModal({
         name: initialData.name || "",
         website: initialData.website || "",
         logoUrl: initialData.logoUrl || "",
+        companyPhone: initialData.companyPhone || "",
+        companyEmail: initialData.companyEmail || "",
+        companyLinkedinUrl: initialData.linkedinUrl || "",
+        hqAddress: initialData.hqAddress || "",
         industry: initialData.industry || "FMCG & Retail",
         country: initialData.country || "Sri Lanka",
         companySize: initialData.employeeRange || initialData.sizeCategory || "",
@@ -129,6 +137,10 @@ export function ProspectModal({
         name: "",
         website: "",
         logoUrl: "",
+        companyPhone: "",
+        companyEmail: "",
+        companyLinkedinUrl: "",
+        hqAddress: "",
         industry: "FMCG & Retail",
         country: "Sri Lanka",
         companySize: "100-500",
@@ -446,6 +458,50 @@ export function ProspectModal({
                   placeholder="https://example.com"
                   value={form.website}
                   onChange={(e) => setForm({ ...form, website: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Company Phone Number</label>
+                <input
+                  type="tel"
+                  placeholder="+94 11 234 5678"
+                  value={form.companyPhone}
+                  onChange={(e) => setForm({ ...form, companyPhone: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Company General Email</label>
+                <input
+                  type="email"
+                  placeholder="info@company.com"
+                  value={form.companyEmail}
+                  onChange={(e) => setForm({ ...form, companyEmail: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Company LinkedIn Page URL</label>
+                <input
+                  type="url"
+                  placeholder="https://linkedin.com/company/..."
+                  value={form.companyLinkedinUrl}
+                  onChange={(e) => setForm({ ...form, companyLinkedinUrl: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-slate-700 font-semibold mb-1">Company Address / City</label>
+                <input
+                  type="text"
+                  placeholder="e.g. No. 148, Vauxhall Street, Colombo 02"
+                  value={form.hqAddress}
+                  onChange={(e) => setForm({ ...form, hqAddress: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
                 />
               </div>

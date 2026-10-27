@@ -54,9 +54,15 @@ export async function PUT(
       name,
       website,
       logoUrl,
+      companyPhone,
+      companyEmail,
+      companyLinkedinUrl,
+      hqAddress,
+      companyAddress,
       industry,
       country,
       companySize,
+      employeeRange,
       currentSfaProvider,
       currentSfaStatus,
       sfaSourceUrl,
@@ -80,9 +86,28 @@ export async function PUT(
         name: name ? name.trim() : undefined,
         website: website !== undefined ? (website?.trim() || null) : undefined,
         logoUrl: logoUrl !== undefined ? (logoUrl?.trim() || null) : undefined,
+        companyPhone: companyPhone !== undefined ? (companyPhone?.trim() || null) : undefined,
+        companyEmail: companyEmail !== undefined ? (companyEmail?.trim() || null) : undefined,
+        linkedinUrl:
+          companyLinkedinUrl !== undefined
+            ? companyLinkedinUrl?.trim() || null
+            : decisionMakerName === undefined && linkedinUrl !== undefined
+            ? linkedinUrl?.trim() || null
+            : undefined,
+        hqAddress:
+          hqAddress !== undefined
+            ? hqAddress?.trim() || null
+            : companyAddress !== undefined
+            ? companyAddress?.trim() || null
+            : undefined,
         industry: industry || undefined,
         country: country || undefined,
-        employeeRange: companySize !== undefined ? companySize : undefined,
+        employeeRange:
+          employeeRange !== undefined
+            ? employeeRange
+            : companySize !== undefined
+            ? companySize
+            : undefined,
         sizeCategory: companySize !== undefined ? companySize : undefined,
         currentSfaProvider: currentSfaProvider !== undefined ? currentSfaProvider : undefined,
         currentSfaStatus: currentSfaStatus !== undefined ? currentSfaStatus : undefined,

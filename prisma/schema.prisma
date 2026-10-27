@@ -32,6 +32,8 @@ model Company {
   website             String?
   logoUrl             String?
   linkedinUrl         String?
+  companyPhone        String?
+  companyEmail        String?
   industry            String   @default("FMCG & Retail")
   subIndustry         String?
   country             String   @default("Sri Lanka")
