@@ -1000,77 +1000,6 @@ function ProspectsContent() {
 
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
-              {/* Status & Follow-up Card */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Prospect Status:</span>
-                  <select
-                    value={selectedProspect.prospectStatus || "New"}
-                    onChange={(e) => handleStatusChange(selectedProspect.id, e.target.value)}
-                    className="text-xs font-bold px-2.5 py-1 rounded-lg border border-slate-200 bg-white focus:outline-none"
-                  >
-                    {PROSPECT_STATUSES.map((st) => (
-                      <option key={st.id} value={st.id}>
-                        {st.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-slate-400" />
-                    Next Follow-up:
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`font-bold px-2 py-0.5 rounded-md text-xs ${
-                        selectedProspect.nextFollowUpDate &&
-                        new Date(selectedProspect.nextFollowUpDate) < new Date(new Date().setHours(0, 0, 0, 0)) &&
-                        !["Won", "Lost", "Do Not Contact"].includes(selectedProspect.prospectStatus)
-                          ? "bg-rose-100 text-rose-700 border border-rose-200 font-bold"
-                          : selectedProspect.nextFollowUpDate
-                          ? "bg-white border border-slate-200 text-slate-800"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      {selectedProspect.nextFollowUpDate
-                        ? new Date(selectedProspect.nextFollowUpDate).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "None scheduled"}
-                    </span>
-                    {selectedProspect.nextFollowUpDate && (
-                      <button
-                        onClick={() => handleCompleteFollowUp(selectedProspect.id)}
-                        title="Mark follow-up completed"
-                        className="p-1 rounded text-slate-400 hover:text-emerald-600 transition-colors"
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                    Last Contacted:
-                  </span>
-                  <span className="text-slate-700 font-medium">
-                    {selectedProspect.lastContactedAt
-                      ? new Date(selectedProspect.lastContactedAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "Never"}
-                  </span>
-                </div>
-              </div>
-
               {/* Company Identity & Location */}
               <div className="space-y-1.5">
                 <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-400">
@@ -1601,6 +1530,82 @@ function ProspectsContent() {
                       No decision-makers added yet. Click &ldquo;Add Contact&rdquo; above to log executive contacts.
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Status & Follow-up Card */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider text-slate-400">
+                  Prospect Status & Outreach Tracking
+                </h4>
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium">Prospect Status:</span>
+                    <select
+                      value={selectedProspect.prospectStatus || "New"}
+                      onChange={(e) => handleStatusChange(selectedProspect.id, e.target.value)}
+                      className="text-xs font-bold px-2.5 py-1 rounded-lg border border-slate-200 bg-white focus:outline-none"
+                    >
+                      {PROSPECT_STATUSES.map((st) => (
+                        <option key={st.id} value={st.id}>
+                          {st.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      Next Follow-up:
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`font-bold px-2 py-0.5 rounded-md text-xs ${
+                          selectedProspect.nextFollowUpDate &&
+                          new Date(selectedProspect.nextFollowUpDate) < new Date(new Date().setHours(0, 0, 0, 0)) &&
+                          !["Won", "Lost", "Do Not Contact"].includes(selectedProspect.prospectStatus)
+                            ? "bg-rose-100 text-rose-700 border border-rose-200 font-bold"
+                            : selectedProspect.nextFollowUpDate
+                            ? "bg-white border border-slate-200 text-slate-800"
+                            : "text-slate-400"
+                        }`}
+                      >
+                        {selectedProspect.nextFollowUpDate
+                          ? new Date(selectedProspect.nextFollowUpDate).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "None scheduled"}
+                      </span>
+                      {selectedProspect.nextFollowUpDate && (
+                        <button
+                          onClick={() => handleCompleteFollowUp(selectedProspect.id)}
+                          title="Mark follow-up completed"
+                          className="p-1 rounded text-slate-400 hover:text-emerald-600 transition-colors"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-medium flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                      Last Contacted:
+                    </span>
+                    <span className="text-slate-700 font-medium">
+                      {selectedProspect.lastContactedAt
+                        ? new Date(selectedProspect.lastContactedAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "Never"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
