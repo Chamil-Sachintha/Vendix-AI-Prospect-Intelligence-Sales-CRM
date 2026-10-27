@@ -12,6 +12,11 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Vendix Prospect Intelligence | Vendix AI",
   description: "Enterprise SFA Prospect Research, Competitor Intelligence & Sales CRM for Vendix AI (Pvt) Limited",
+  icons: {
+    icon: "/vendix-icon.png",
+    shortcut: "/vendix-icon.png",
+    apple: "/vendix-icon.png",
+  },
 };
 
 export default function RootLayout({

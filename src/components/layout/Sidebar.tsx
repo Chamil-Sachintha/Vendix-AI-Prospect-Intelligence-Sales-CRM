@@ -32,17 +32,23 @@ export function Sidebar() {
       {/* Brand Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100">
         <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
-          <div className="h-9 w-9 min-w-9 rounded-xl bg-gradient-to-tr from-[#0033BF] to-[#2768FF] flex items-center justify-center text-white font-bold shadow-xs">
-            <Sparkles className="h-4.5 w-4.5" />
-          </div>
-          {!sidebarCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-bold text-slate-900 tracking-tight text-sm leading-tight">
-                VENDIX AI
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-                Prospect Tracker
-              </span>
+          {sidebarCollapsed ? (
+            <div className="h-10 w-10 min-w-10 rounded-xl bg-white border border-slate-200/80 p-1 flex items-center justify-center shadow-2xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/vendix-icon.png"
+                alt="Vendix AI"
+                className="h-full w-full object-contain"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/vendix-logo.png"
+                alt="Vendix AI"
+                className="h-10 w-auto max-w-[140px] object-contain"
+              />
             </div>
           )}
         </Link>
