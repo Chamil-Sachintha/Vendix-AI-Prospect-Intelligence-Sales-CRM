@@ -226,16 +226,6 @@ export async function POST(request: Request) {
       });
     }
 
-    // Audit log
-    await prisma.timelineEvent.create({
-      data: {
-        companyId: company.id,
-        actorName,
-        eventType: "PROSPECT_CREATED",
-        description: `Prospect "${company.name}" created with status "${company.prospectStatus}".`,
-      },
-    });
-
     return NextResponse.json(company, { status: 201 });
   } catch (error) {
     console.error("Company POST error:", error);
