@@ -1139,20 +1139,6 @@ function ProspectsContent() {
                   )}
                 </div>
 
-                {/* Filter / Search contacts when there are more than 2 */}
-                {(selectedProspect.contacts?.length || 0) > 2 && !isAddingContact && (
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Filter decision-makers by name, title, or email..."
-                      value={contactSearch}
-                      onChange={(e) => setContactSearch(e.target.value)}
-                      className="w-full pl-7.5 pr-2.5 py-1 text-xs rounded-lg border border-slate-200 focus:border-[#0033BF] focus:outline-none"
-                    />
-                  </div>
-                )}
-
                 {/* Inline Add / Edit Decision-Maker Form */}
                 {isAddingContact && (
                   <form
@@ -1372,16 +1358,6 @@ function ProspectsContent() {
                 {/* List of Decision-Makers */}
                 <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
                   {(selectedProspect.contacts || [])
-                    .filter((ct: any) => {
-                      if (!contactSearch.trim()) return true;
-                      const q = contactSearch.toLowerCase();
-                      return (
-                        ct.fullName?.toLowerCase().includes(q) ||
-                        ct.jobTitle?.toLowerCase().includes(q) ||
-                        ct.department?.toLowerCase().includes(q) ||
-                        ct.businessEmail?.toLowerCase().includes(q)
-                      );
-                    })
                     .map((ct: any) => {
                       const roleConfig = ROLE_BADGES[ct.roleInPurchasing] || {
                         label: ct.roleInPurchasing || "Stakeholder",
