@@ -1415,8 +1415,8 @@ function ProspectsContent() {
                             </div>
 
                             {/* Avatar + Name + Job Title */}
-                            <div className="flex flex-col items-center text-center space-y-2 py-1">
-                              <div className="h-14 w-14 rounded-2xl border border-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
+                            <div className="flex flex-col items-center text-center space-y-2.5 py-1.5">
+                              <div className="h-24 w-24 rounded-2xl border border-slate-200 bg-slate-100 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
                                 {ct.avatarUrl ? (
                                   // eslint-disable-next-line @next/next/no-img-element
                                   <img
@@ -1428,7 +1428,7 @@ function ProspectsContent() {
                                     }}
                                   />
                                 ) : (
-                                  <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-sm">
+                                  <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-[#0033BF] text-white flex items-center justify-center font-bold text-xl">
                                     {contactInitials}
                                   </div>
                                 )}
