@@ -1029,18 +1029,25 @@ function ProspectsContent() {
                       <span className="font-medium text-slate-800 text-right">{selectedProspect.hqAddress}</span>
                     </div>
                   )}
-                  {selectedProspect.companyPhone && (
-                    <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-                      <span className="text-slate-400">Company Phone:</span>
-                      <a
-                        href={`tel:${selectedProspect.companyPhone}`}
-                        className="text-slate-800 hover:text-[#0033BF] flex items-center gap-1 font-semibold"
-                      >
-                        <Phone className="h-3 w-3 text-slate-400" />
-                        {selectedProspect.companyPhone}
-                      </a>
-                    </div>
-                  )}
+                  {selectedProspect.companyPhone &&
+                    selectedProspect.companyPhone
+                      .split(/[;,]+/)
+                      .map((p: string) => p.trim())
+                      .filter(Boolean)
+                      .map((phone: string, idx: number, arr: string[]) => (
+                        <div key={idx} className="flex justify-between items-center pt-1 border-t border-slate-100">
+                          <span className="text-slate-400">
+                            {arr.length > 1 ? `Company Phone ${idx + 1}:` : "Company Phone:"}
+                          </span>
+                          <a
+                            href={`tel:${phone}`}
+                            className="text-slate-800 hover:text-[#0033BF] flex items-center gap-1 font-semibold"
+                          >
+                            <Phone className="h-3 w-3 text-slate-400" />
+                            {phone}
+                          </a>
+                        </div>
+                      ))}
                   {selectedProspect.companyEmail &&
                     selectedProspect.companyEmail
                       .split(/[;,]+/)
