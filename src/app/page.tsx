@@ -674,10 +674,18 @@ function ProspectsContent() {
             className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
           >
             <option value="ALL">All Industries</option>
-            <option value="FMCG">FMCG & Consumer Goods</option>
-            <option value="Beverages">Beverages & Soft Drinks</option>
-            <option value="Retail">Retail & Durable Goods</option>
-            <option value="Manufacturing">Manufacturing & Distribution</option>
+            <option value="FMCG">FMCG</option>
+            <option value="Food|Beverage|Dairy|Chocolate|Ice Cream">Food, Beverage & Dairy</option>
+            <option value="Pharmaceutical|Healthcare|Medical">Pharmaceuticals & Healthcare</option>
+            <option value="Cosmetics|Personal Care|Beauty|Skincare|Cosmeceuticals">Cosmetics, Beauty & Personal Care</option>
+            <option value="Lubricants|Automotive|Tyre">Automotive, Tyres & Lubricants</option>
+            <option value="Electrical|Cables|Consumer Electronics|Home Appliances">Electrical, Cables & Electronics</option>
+            <option value="Agriculture|Fertilizer|Sugar">Agriculture, Sugar & Fertilizer</option>
+            <option value="Construction|Paints">Construction Materials & Paints</option>
+            <option value="Energy|Gas">Energy & LPG</option>
+            <option value="Logistics|Warehousing|Trading">Logistics, Warehousing & Trading</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Distribution">Distribution</option>
           </select>
 
           <select
@@ -687,9 +695,6 @@ function ProspectsContent() {
           >
             <option value="ALL">All Countries</option>
             <option value="Sri Lanka">Sri Lanka</option>
-            <option value="United Arab Emirates">United Arab Emirates</option>
-            <option value="Malaysia">Malaysia</option>
-            <option value="Kenya">Kenya</option>
           </select>
 
           <select
@@ -698,10 +703,19 @@ function ProspectsContent() {
             className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
           >
             <option value="ALL">All SFA Software</option>
-            <option value="Bizom">Bizom</option>
-            <option value="FieldAssist">FieldAssist</option>
-            <option value="Repsly">Repsly</option>
-            <option value="In-House">Legacy / In-House SFA</option>
+            <option value="Perfect SFA|PBSS">PBSS Group - Perfect SFA</option>
+            <option value="iForce">iForce SFA</option>
+            <option value="eVision Microsystems">eVision Microsystems</option>
+            <option value="Blue Lotus 360">Blue Lotus 360</option>
+            <option value="X-ONT|Virtusel">X-ONT Software - Virtusel SFA</option>
+            <option value="Axienta">Axienta</option>
+            <option value="Prima Management Services|PMS SFA">Prima Management Services (PMS SFA)</option>
+            <option value="Velociti SFA">Velociti SFA</option>
+            <option value="SalesCode AI">SalesCode AI</option>
+            <option value="Accenture">Accenture</option>
+            <option value="SAP S/4HANA">SAP S/4HANA Integrated SFA</option>
+            <option value="Kelani Cables Sales Force Automation">Kelani Cables SFA Portal</option>
+            <option value="NONE_OR_UNKNOWN">None / Unknown</option>
           </select>
 
           {(search ||

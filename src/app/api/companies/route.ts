@@ -15,57 +15,79 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "100", 10);
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const andConditions: any[] = [];
 
     if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { industry: { contains: search } },
-        { country: { contains: search } },
-        { currentSfaProvider: { contains: search } },
-        { notes: { contains: search } },
-        { contacts: { some: { fullName: { contains: search } } } },
-        { contacts: { some: { businessEmail: { contains: search } } } },
-      ];
+      andConditions.push({
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { industry: { contains: search, mode: "insensitive" } },
+          { country: { contains: search, mode: "insensitive" } },
+          { currentSfaProvider: { contains: search, mode: "insensitive" } },
+          { notes: { contains: search, mode: "insensitive" } },
+          { contacts: { some: { fullName: { contains: search, mode: "insensitive" } } } },
+          { contacts: { some: { businessEmail: { contains: search, mode: "insensitive" } } } },
+        ],
+      });
     }
 
     if (status && status !== "ALL") {
       if (status === "Contacted / Awaiting Response") {
-        where.prospectStatus = { in: ["Contacted", "Awaiting Response"] };
+        andConditions.push({ prospectStatus: { in: ["Contacted", "Awaiting Response"] } });
       } else if (status.includes(",")) {
-        where.prospectStatus = { in: status.split(",").map((s) => s.trim()) };
+        andConditions.push({ prospectStatus: { in: status.split(",").map((s) => s.trim()) } });
       } else {
-        where.prospectStatus = status;
+        andConditions.push({ prospectStatus: status });
       }
     }
 
     if (industry && industry !== "ALL") {
-      where.industry = { contains: industry };
+      const keywords = industry.split("|").map((k) => k.trim()).filter(Boolean);
+      andConditions.push({
+        OR: keywords.map((kw) => ({ industry: { contains: kw, mode: "insensitive" } })),
+      });
     }
 
     if (country && country !== "ALL") {
-      where.country = country;
+      andConditions.push({ country: { equals: country, mode: "insensitive" } });
     }
 
     if (sfaProvider && sfaProvider !== "ALL") {
-      where.OR = [
-        { currentSfaProvider: { contains: sfaProvider } },
-        { softwareRecords: { some: { productName: { contains: sfaProvider } } } },
-      ];
+      if (sfaProvider === "NONE_OR_UNKNOWN") {
+        andConditions.push({
+          OR: [
+            { currentSfaProvider: null },
+            { currentSfaProvider: "" },
+            { currentSfaProvider: { contains: "Unknown", mode: "insensitive" } },
+          ],
+        });
+      } else {
+        const sfaKeywords = sfaProvider.split("|").map((k) => k.trim()).filter(Boolean);
+        andConditions.push({
+          OR: sfaKeywords.flatMap((kw) => [
+            { currentSfaProvider: { contains: kw, mode: "insensitive" } },
+            { softwareRecords: { some: { productName: { contains: kw, mode: "insensitive" } } } },
+          ]),
+        });
+      }
     }
 
     if (companySize && companySize !== "ALL") {
-      where.OR = [
-        { sizeCategory: companySize },
-        { employeeRange: { contains: companySize } },
-      ];
+      andConditions.push({
+        OR: [
+          { sizeCategory: { contains: companySize, mode: "insensitive" } },
+          { employeeRange: { contains: companySize, mode: "insensitive" } },
+        ],
+      });
     }
 
     if (followUpsDue === "true") {
       const now = new Date();
       const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-      where.nextFollowUpDate = { lte: endOfToday };
+      andConditions.push({ nextFollowUpDate: { lte: endOfToday } });
     }
+
+    const where: any = andConditions.length > 0 ? { AND: andConditions } : {};
 
     const [total, companies] = await Promise.all([
       prisma.company.count({ where }),
