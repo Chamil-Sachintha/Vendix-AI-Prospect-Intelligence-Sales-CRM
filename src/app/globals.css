@@ -17,6 +17,11 @@
     color: var(--vendix-text);
     font-family: var(--font-poppins), system-ui, -apple-system, sans-serif;
   }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* Custom scrollbars & smooth transitions */

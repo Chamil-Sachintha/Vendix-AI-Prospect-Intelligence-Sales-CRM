@@ -1090,7 +1090,7 @@ function ProspectsContent() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setSelectedProspect(p)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-[#0033BF] hover:bg-slate-100 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-[#0033BF] hover:bg-slate-100 transition-colors cursor-pointer"
                             title="View Details & Decision-Makers"
                           >
                             <Eye className="h-3.5 w-3.5" />
@@ -1100,7 +1100,7 @@ function ProspectsContent() {
                               setEditingProspect(p);
                               setIsModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors cursor-pointer"
                             title="Edit Prospect"
                           >
                             <Edit className="h-3.5 w-3.5" />
@@ -1108,7 +1108,7 @@ function ProspectsContent() {
                           {permissions.canDeleteCompanies && (
                             <button
                               onClick={() => handleDeleteProspect(p.id, p.name)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                               title="Delete Prospect"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
