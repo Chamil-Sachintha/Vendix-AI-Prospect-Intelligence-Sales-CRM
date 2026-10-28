@@ -770,8 +770,8 @@ function ProspectsContent() {
       {/* Main Prospects Table Body */}
       <div className="bg-white rounded-b-2xl border-x border-b border-slate-200/80 shadow-xs overflow-hidden">
         <div ref={bodyScrollRef} onScroll={handleBodyScroll} className="overflow-x-auto">
-          <table ref={bodyTableRef} className="w-full text-left text-xs whitespace-nowrap">
-            <thead aria-hidden="true" className="text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+          <table ref={bodyTableRef} className="w-full text-left text-xs">
+            <thead aria-hidden="true" className="text-slate-500 font-semibold uppercase tracking-wider text-[11px] whitespace-nowrap">
               <tr ref={measureRowRef} className="h-0">
                 {visibleColumns.logo && (
                   <th className="py-0 px-2.5 h-0 border-0 w-[76px] min-w-[76px]">
@@ -868,14 +868,14 @@ function ProspectsContent() {
 
                     {/* 1. Company Name */}
                     {visibleColumns.companyName && (
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-2.5 px-3.5 whitespace-normal break-words leading-snug max-w-[240px]">
                         <button
                           onClick={() => setSelectedProspect(p)}
-                          className="font-bold text-slate-900 hover:text-[#0033BF] hover:underline text-left text-xs flex items-center gap-1.5"
+                          className="font-bold text-slate-900 hover:text-[#0033BF] hover:underline text-left text-xs inline-flex flex-wrap items-center gap-1.5"
                         >
                           <span>{p.name}</span>
                           {p.slraMember && (
-                            <span className="text-[9px] bg-blue-50 text-[#0033BF] font-bold px-1 rounded border border-blue-200">
+                            <span className="text-[9px] bg-blue-50 text-[#0033BF] font-bold px-1 rounded border border-blue-200 shrink-0">
                               SLRA
                             </span>
                           )}
@@ -885,17 +885,21 @@ function ProspectsContent() {
 
                     {/* 2. Industry */}
                     {visibleColumns.industry && (
-                      <td className="py-2.5 px-3 text-slate-700">{p.industry}</td>
+                      <td className="py-2.5 px-3 text-slate-700 whitespace-normal break-words leading-snug max-w-[240px]">
+                        {p.industry}
+                      </td>
                     )}
 
                     {/* 3. Country */}
                     {visibleColumns.country && (
-                      <td className="py-2.5 px-3 text-slate-600">{p.country}</td>
+                      <td className="py-2.5 px-3 text-slate-600 whitespace-normal break-words leading-snug">
+                        {p.country}
+                      </td>
                     )}
 
                     {/* 4. Website */}
                     {visibleColumns.website && (
-                      <td className="py-2.5 px-3">
+                      <td className="py-2.5 px-3 whitespace-nowrap">
                         {p.website ? (
                           <a
                             href={p.website}
@@ -903,7 +907,7 @@ function ProspectsContent() {
                             rel="noreferrer"
                             className="text-[#0033BF] hover:underline flex items-center gap-1 text-[11px]"
                           >
-                            <Globe className="h-3 w-3" />
+                            <Globe className="h-3 w-3 shrink-0" />
                             Visit
                           </a>
                         ) : (
@@ -914,7 +918,7 @@ function ProspectsContent() {
 
                     {/* 5. Company Size */}
                     {visibleColumns.companySize && (
-                      <td className="py-2.5 px-3 text-slate-700 font-medium">
+                      <td className="py-2.5 px-3 text-slate-700 font-medium whitespace-normal break-words leading-snug max-w-[180px]">
                         {p.employeeRange || p.sizeCategory || p.fieldSalesRepsCount ? (
                           <span>{p.employeeRange || `${p.fieldSalesRepsCount} Reps`}</span>
                         ) : (
@@ -925,7 +929,7 @@ function ProspectsContent() {
 
                     {/* 6. Current SFA */}
                     {visibleColumns.currentSfa && (
-                      <td className="py-2.5 px-3.5 text-slate-700">
+                      <td className="py-2.5 px-3.5 text-slate-700 whitespace-normal break-words leading-snug max-w-[240px]">
                         {p.currentSfaProvider ? (
                           <span className="font-medium text-slate-800">
                             {p.currentSfaProvider}
@@ -938,7 +942,7 @@ function ProspectsContent() {
 
                     {/* 7. Decision-Makers Count / Trigger */}
                     {visibleColumns.decisionMakers && (
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap">
                         <button
                           onClick={() => setSelectedProspect(p)}
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 hover:text-[#0033BF] transition-all text-xs font-semibold text-slate-700 group/pill"
@@ -956,7 +960,7 @@ function ProspectsContent() {
 
                     {/* 11. Prospect Status (Inline Dropdown) */}
                     {visibleColumns.prospectStatus && (
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap">
                         <select
                           value={p.prospectStatus || "New"}
                           onChange={(e) => handleStatusChange(p.id, e.target.value)}
@@ -975,7 +979,7 @@ function ProspectsContent() {
 
                     {/* 12. Last Contacted */}
                     {visibleColumns.lastContacted && (
-                      <td className="py-2.5 px-3 text-slate-500 text-[11px]">
+                      <td className="py-2.5 px-3 text-slate-500 text-[11px] whitespace-nowrap">
                         {p.lastContactedAt ? (
                           new Date(p.lastContactedAt).toLocaleDateString()
                         ) : (
@@ -986,7 +990,7 @@ function ProspectsContent() {
 
                     {/* 13. Next Follow-up (Overdue & Due Today highlighting) */}
                     {visibleColumns.nextFollowUp && (
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap">
                         {followUpDate ? (
                           <div className="flex items-center gap-1.5">
                             <span
@@ -1019,7 +1023,7 @@ function ProspectsContent() {
 
                     {/* 14. Notes */}
                     {visibleColumns.notes && (
-                      <td className="py-2.5 px-3.5 max-w-[280px] truncate text-slate-600 text-[11px]">
+                      <td className="py-2.5 px-3.5 max-w-[280px] whitespace-normal break-words leading-snug text-slate-600 text-[11px]">
                         {addingNoteId === p.id ? (
                           <div className="flex items-center gap-1">
                             <input
@@ -1048,8 +1052,8 @@ function ProspectsContent() {
                             </button>
                           </div>
                         ) : (
-                          <div className="flex items-center justify-between group/note">
-                            <span className="truncate">{p.notes || "-"}</span>
+                          <div className="flex items-start justify-between group/note gap-1">
+                            <span className="whitespace-normal break-words">{p.notes || "-"}</span>
                             <button
                               onClick={() => {
                                 setAddingNoteId(p.id);
