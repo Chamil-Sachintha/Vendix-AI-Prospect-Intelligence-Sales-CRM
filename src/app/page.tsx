@@ -681,7 +681,7 @@ function ProspectsContent() {
             <option value="Lubricants|Automotive|Tyre">Automotive, Tyres & Lubricants</option>
             <option value="Electrical|Cables|Consumer Electronics|Home Appliances">Electrical, Cables & Electronics</option>
             <option value="Agriculture|Fertilizer|Sugar">Agriculture, Sugar & Fertilizer</option>
-            <option value="Construction|Paints">Construction Materials & Paints</option>
+            <option value="Construction|Building Materials|Cement|Paints">Construction Materials, Cement & Paints</option>
             <option value="Energy|Gas">Energy & LPG</option>
             <option value="Logistics|Warehousing|Trading">Logistics, Warehousing & Trading</option>
             <option value="Manufacturing">Manufacturing</option>
