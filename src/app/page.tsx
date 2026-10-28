@@ -858,7 +858,7 @@ function ProspectsContent() {
                   <tr
                     key={p.id}
                     onClick={() => setSelectedProspect(p)}
-                    className="hover:bg-slate-50/70 transition-colors group cursor-pointer"
+                    className="hover:bg-slate-50/70 transition-colors group"
                   >
                     {/* 0. Company Logo (Sticky on horizontal scroll) */}
                     {visibleColumns.logo && (
