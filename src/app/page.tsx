@@ -681,7 +681,8 @@ function ProspectsContent() {
             <option value="Lubricants|Automotive|Tyre">Automotive, Tyres & Lubricants</option>
             <option value="Electrical|Cables|Consumer Electronics|Home Appliances">Electrical, Cables & Electronics</option>
             <option value="Agriculture|Fertilizer|Sugar">Agriculture, Sugar & Fertilizer</option>
-            <option value="Construction|Building Materials|Cement|Paints">Construction Materials, Cement & Paints</option>
+            <option value="Construction|Building Materials|Cement|Steel|Paints">Construction, Steel, Cement & Paints</option>
+            <option value="Fashion|Apparel|Retail">Fashion, Apparel & Retail</option>
             <option value="Energy|Gas">Energy & LPG</option>
             <option value="Logistics|Warehousing|Trading">Logistics, Warehousing & Trading</option>
             <option value="Manufacturing">Manufacturing</option>
@@ -695,6 +696,7 @@ function ProspectsContent() {
           >
             <option value="ALL">All Countries</option>
             <option value="Sri Lanka">Sri Lanka</option>
+            <option value="Italy">Italy</option>
           </select>
 
           <select
