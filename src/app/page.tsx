@@ -157,6 +157,52 @@ function ProspectsContent() {
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const columnMenuRef = useRef<HTMLDivElement>(null);
 
+  // Sticky Header & Table Horizontal Scroll / Width Sync Refs
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
+  const bodyTableRef = useRef<HTMLTableElement>(null);
+  const measureRowRef = useRef<HTMLTableRowElement>(null);
+  const [colWidths, setColWidths] = useState<number[]>([]);
+  const [bodyTableWidth, setBodyTableWidth] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const updateWidths = () => {
+      if (!measureRowRef.current || !bodyTableRef.current) return;
+      const ths = Array.from(measureRowRef.current.children) as HTMLElement[];
+      const widths = ths.map((th) => th.getBoundingClientRect().width);
+      setColWidths(widths);
+      setBodyTableWidth(bodyTableRef.current.getBoundingClientRect().width);
+    };
+
+    updateWidths();
+    const ro = new ResizeObserver(updateWidths);
+    if (bodyTableRef.current) ro.observe(bodyTableRef.current);
+    if (measureRowRef.current) {
+      Array.from(measureRowRef.current.children).forEach((el) => ro.observe(el));
+    }
+    window.addEventListener("resize", updateWidths);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", updateWidths);
+    };
+  }, [prospects, visibleColumns]);
+
+  const handleBodyScroll = () => {
+    if (headerScrollRef.current && bodyScrollRef.current) {
+      if (headerScrollRef.current.scrollLeft !== bodyScrollRef.current.scrollLeft) {
+        headerScrollRef.current.scrollLeft = bodyScrollRef.current.scrollLeft;
+      }
+    }
+  };
+
+  const handleHeaderScroll = () => {
+    if (headerScrollRef.current && bodyScrollRef.current) {
+      if (bodyScrollRef.current.scrollLeft !== headerScrollRef.current.scrollLeft) {
+        bodyScrollRef.current.scrollLeft = headerScrollRef.current.scrollLeft;
+      }
+    }
+  };
+
   // Drawer Decision-Makers Management State
   const [contactSearch, setContactSearch] = useState("");
   const [isAddingContact, setIsAddingContact] = useState(false);
@@ -545,152 +591,251 @@ function ProspectsContent() {
     return `/api/export?${params.toString()}`;
   };
 
+  let headerColIdx = 0;
+  const getColStyle = () => {
+    const w = colWidths[headerColIdx++];
+    return w ? { width: `${w}px`, minWidth: `${w}px`, maxWidth: `${w}px` } : undefined;
+  };
+
   return (
     <AppShell fullWidth>
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            SFA Prospect Tracking Database
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#0033BF] border border-blue-200">
-              {prospects.length} accounts
-            </span>
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Maintain accounts, track field sales operations and decision-makers, and manage follow-ups.
-          </p>
+      {/* Sticky Top Section: Page Header + Filters + Table Head */}
+      <div className="sticky top-0 z-20 bg-[#F8FAFC] pt-4 -mt-4">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              SFA Prospect Tracking Database
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-[#0033BF] border border-blue-200">
+                {prospects.length} accounts
+              </span>
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Maintain accounts, track field sales operations and decision-makers, and manage follow-ups.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Add Prospect Button */}
+            <button
+              onClick={() => {
+                setEditingProspect(null);
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0033BF] hover:bg-[#2768FF] text-white text-xs font-semibold shadow-xs transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Prospect</span>
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Add Prospect Button */}
-          <button
-            onClick={() => {
-              setEditingProspect(null);
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0033BF] hover:bg-[#2768FF] text-white text-xs font-semibold shadow-xs transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Prospect</span>
-          </button>
-        </div>
-      </div>
-
-      {importSummary && (
-        <div className="mb-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-[#0033BF] text-xs flex items-center justify-between">
-          <span>{importSummary}</span>
-          <button onClick={() => setImportSummary(null)} className="text-slate-400 hover:text-slate-600">
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-
-      {/* Search & Filter Bar (Single Unified Row) */}
-      <div className="bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-xs mb-4 flex flex-wrap items-center gap-2 text-xs">
-        {/* Search bar */}
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search by company, industry, country, SFA software, decision-maker, or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-8.5 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
-          />
-        </div>
-
-        {/* Dropdown Filters */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
-        >
-          <option value="ALL">All Statuses</option>
-          <option value="Contacted / Awaiting Response">Contacted / Awaiting Response</option>
-          {PROSPECT_STATUSES.map((st) => (
-            <option key={st.id} value={st.id}>
-              {st.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={industryFilter}
-          onChange={(e) => setIndustryFilter(e.target.value)}
-          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
-        >
-          <option value="ALL">All Industries</option>
-          <option value="FMCG">FMCG & Consumer Goods</option>
-          <option value="Beverages">Beverages & Soft Drinks</option>
-          <option value="Retail">Retail & Durable Goods</option>
-          <option value="Manufacturing">Manufacturing & Distribution</option>
-        </select>
-
-        <select
-          value={countryFilter}
-          onChange={(e) => setCountryFilter(e.target.value)}
-          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
-        >
-          <option value="ALL">All Countries</option>
-          <option value="Sri Lanka">Sri Lanka</option>
-          <option value="United Arab Emirates">United Arab Emirates</option>
-          <option value="Malaysia">Malaysia</option>
-          <option value="Kenya">Kenya</option>
-        </select>
-
-        <select
-          value={sfaFilter}
-          onChange={(e) => setSfaFilter(e.target.value)}
-          className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
-        >
-          <option value="ALL">All SFA Software</option>
-          <option value="Bizom">Bizom</option>
-          <option value="FieldAssist">FieldAssist</option>
-          <option value="Repsly">Repsly</option>
-          <option value="In-House">Legacy / In-House SFA</option>
-        </select>
-
-        {(search ||
-          statusFilter !== "ALL" ||
-          industryFilter !== "ALL" ||
-          countryFilter !== "ALL" ||
-          sfaFilter !== "ALL" ||
-          sizeFilter !== "ALL" ||
-          followUpsDueOnly) && (
-          <button
-            onClick={resetFilters}
-            className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline px-1 shrink-0"
-          >
-            Reset Filters
-          </button>
+        {importSummary && (
+          <div className="mb-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-[#0033BF] text-xs flex items-center justify-between">
+            <span>{importSummary}</span>
+            <button onClick={() => setImportSummary(null)} className="text-slate-400 hover:text-slate-600">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         )}
+
+        {/* Search & Filter Bar (Single Unified Row) */}
+        <div className="bg-white rounded-2xl p-2.5 border border-slate-200/80 shadow-xs mb-4 flex flex-wrap items-center gap-2 text-xs">
+          {/* Search bar */}
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by company, industry, country, SFA software, decision-maker, or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-8.5 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:border-[#0033BF] focus:outline-none"
+            />
+          </div>
+
+          {/* Dropdown Filters */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+          >
+            <option value="ALL">All Statuses</option>
+            <option value="Contacted / Awaiting Response">Contacted / Awaiting Response</option>
+            {PROSPECT_STATUSES.map((st) => (
+              <option key={st.id} value={st.id}>
+                {st.label}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={industryFilter}
+            onChange={(e) => setIndustryFilter(e.target.value)}
+            className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+          >
+            <option value="ALL">All Industries</option>
+            <option value="FMCG">FMCG & Consumer Goods</option>
+            <option value="Beverages">Beverages & Soft Drinks</option>
+            <option value="Retail">Retail & Durable Goods</option>
+            <option value="Manufacturing">Manufacturing & Distribution</option>
+          </select>
+
+          <select
+            value={countryFilter}
+            onChange={(e) => setCountryFilter(e.target.value)}
+            className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+          >
+            <option value="ALL">All Countries</option>
+            <option value="Sri Lanka">Sri Lanka</option>
+            <option value="United Arab Emirates">United Arab Emirates</option>
+            <option value="Malaysia">Malaysia</option>
+            <option value="Kenya">Kenya</option>
+          </select>
+
+          <select
+            value={sfaFilter}
+            onChange={(e) => setSfaFilter(e.target.value)}
+            className="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none text-xs"
+          >
+            <option value="ALL">All SFA Software</option>
+            <option value="Bizom">Bizom</option>
+            <option value="FieldAssist">FieldAssist</option>
+            <option value="Repsly">Repsly</option>
+            <option value="In-House">Legacy / In-House SFA</option>
+          </select>
+
+          {(search ||
+            statusFilter !== "ALL" ||
+            industryFilter !== "ALL" ||
+            countryFilter !== "ALL" ||
+            sfaFilter !== "ALL" ||
+            sizeFilter !== "ALL" ||
+            followUpsDueOnly) && (
+            <button
+              onClick={resetFilters}
+              className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline px-1 shrink-0"
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
+
+        {/* Sticky Table Head */}
+        <div className="bg-slate-50 rounded-t-2xl border border-slate-200/80 overflow-hidden">
+          <div
+            ref={headerScrollRef}
+            onScroll={handleHeaderScroll}
+            className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <table
+              className="w-full text-left text-xs whitespace-nowrap"
+              style={bodyTableWidth ? { width: `${bodyTableWidth}px`, minWidth: `${bodyTableWidth}px` } : undefined}
+            >
+              <thead className="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                <tr>
+                  {visibleColumns.logo && (
+                    <th
+                      style={getColStyle()}
+                      className="py-3 px-2.5 text-center sticky left-0 z-30 bg-slate-50 border-r border-slate-200/80 w-[76px] min-w-[76px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+                    >
+                      Logo
+                    </th>
+                  )}
+                  {visibleColumns.companyName && <th style={getColStyle()} className="py-3 px-3.5">Company Name</th>}
+                  {visibleColumns.industry && <th style={getColStyle()} className="py-3 px-3">Industry</th>}
+                  {visibleColumns.country && <th style={getColStyle()} className="py-3 px-3">Country</th>}
+                  {visibleColumns.website && <th style={getColStyle()} className="py-3 px-3">Website</th>}
+                  {visibleColumns.companySize && <th style={getColStyle()} className="py-3 px-3">Size / Scale</th>}
+                  {visibleColumns.currentSfa && <th style={getColStyle()} className="py-3 px-3.5">Current SFA</th>}
+                  {visibleColumns.decisionMakers && <th style={getColStyle()} className="py-3 px-3.5">Decision-Makers</th>}
+                  {visibleColumns.prospectStatus && <th style={getColStyle()} className="py-3 px-3.5">Prospect Status</th>}
+                  {visibleColumns.lastContacted && <th style={getColStyle()} className="py-3 px-3">Last Contacted</th>}
+                  {visibleColumns.nextFollowUp && <th style={getColStyle()} className="py-3 px-3.5">Next Follow-up</th>}
+                  {visibleColumns.notes && <th style={getColStyle()} className="py-3 px-3.5 min-w-[200px]">Notes</th>}
+                  {visibleColumns.actions && (
+                    <th
+                      style={getColStyle()}
+                      className="py-3 px-3.5 text-right sticky right-0 bg-slate-50 z-30 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+                    >
+                      Actions
+                    </th>
+                  )}
+                </tr>
+              </thead>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* Main Prospects Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
+      {/* Main Prospects Table Body */}
+      <div className="bg-white rounded-b-2xl border-x border-b border-slate-200/80 shadow-xs overflow-hidden">
+        <div ref={bodyScrollRef} onScroll={handleBodyScroll} className="overflow-x-auto">
+          <table ref={bodyTableRef} className="w-full text-left text-xs whitespace-nowrap">
+            <thead aria-hidden="true" className="text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <tr ref={measureRowRef} className="h-0">
                 {visibleColumns.logo && (
-                  <th className="py-3 px-2.5 text-center sticky top-0 left-0 z-30 bg-slate-50 border-r border-slate-200/80 w-[76px] min-w-[76px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
-                    Logo
+                  <th className="py-0 px-2.5 h-0 border-0 w-[76px] min-w-[76px]">
+                    <div className="h-0 overflow-hidden">Logo</div>
                   </th>
                 )}
-                {visibleColumns.companyName && <th className="py-3 px-3.5">Company Name</th>}
-                {visibleColumns.industry && <th className="py-3 px-3">Industry</th>}
-                {visibleColumns.country && <th className="py-3 px-3">Country</th>}
-                {visibleColumns.website && <th className="py-3 px-3">Website</th>}
-                {visibleColumns.companySize && <th className="py-3 px-3">Size / Scale</th>}
-                {visibleColumns.currentSfa && <th className="py-3 px-3.5">Current SFA</th>}
-                {visibleColumns.decisionMakers && <th className="py-3 px-3.5">Decision-Makers</th>}
-                {visibleColumns.prospectStatus && <th className="py-3 px-3.5">Prospect Status</th>}
-                {visibleColumns.lastContacted && <th className="py-3 px-3">Last Contacted</th>}
-                {visibleColumns.nextFollowUp && <th className="py-3 px-3.5">Next Follow-up</th>}
-                {visibleColumns.notes && <th className="py-3 px-3.5 min-w-[200px]">Notes</th>}
+                {visibleColumns.companyName && (
+                  <th className="py-0 px-3.5 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Company Name</div>
+                  </th>
+                )}
+                {visibleColumns.industry && (
+                  <th className="py-0 px-3 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Industry</div>
+                  </th>
+                )}
+                {visibleColumns.country && (
+                  <th className="py-0 px-3 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Country</div>
+                  </th>
+                )}
+                {visibleColumns.website && (
+                  <th className="py-0 px-3 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Website</div>
+                  </th>
+                )}
+                {visibleColumns.companySize && (
+                  <th className="py-0 px-3 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Size / Scale</div>
+                  </th>
+                )}
+                {visibleColumns.currentSfa && (
+                  <th className="py-0 px-3.5 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Current SFA</div>
+                  </th>
+                )}
+                {visibleColumns.decisionMakers && (
+                  <th className="py-0 px-3.5 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Decision-Makers</div>
+                  </th>
+                )}
+                {visibleColumns.prospectStatus && (
+                  <th className="py-0 px-3.5 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Prospect Status</div>
+                  </th>
+                )}
+                {visibleColumns.lastContacted && (
+                  <th className="py-0 px-3 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Last Contacted</div>
+                  </th>
+                )}
+                {visibleColumns.nextFollowUp && (
+                  <th className="py-0 px-3.5 h-0 border-0">
+                    <div className="h-0 overflow-hidden">Next Follow-up</div>
+                  </th>
+                )}
+                {visibleColumns.notes && (
+                  <th className="py-0 px-3.5 h-0 border-0 min-w-[200px]">
+                    <div className="h-0 overflow-hidden">Notes</div>
+                  </th>
+                )}
                 {visibleColumns.actions && (
-                  <th className="py-3 px-3.5 text-right sticky top-0 right-0 bg-slate-50 z-30 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
-                    Actions
+                  <th className="py-0 px-3.5 h-0 border-0 text-right">
+                    <div className="h-0 overflow-hidden">Actions</div>
                   </th>
                 )}
               </tr>
@@ -716,7 +861,7 @@ function ProspectsContent() {
                   >
                     {/* 0. Company Logo (Sticky on horizontal scroll) */}
                     {visibleColumns.logo && (
-                      <td className="py-2 px-2.5 text-center sticky left-0 z-20 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-200/80 w-[76px] min-w-[76px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                      <td className="py-2 px-2.5 text-center sticky left-0 z-10 bg-white group-hover:bg-slate-50 transition-colors border-r border-slate-200/80 w-[76px] min-w-[76px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                         <ProspectLogoCell prospect={p} onClick={() => setSelectedProspect(p)} />
                       </td>
                     )}
@@ -922,7 +1067,7 @@ function ProspectsContent() {
 
                     {/* 15. Actions */}
                     {visibleColumns.actions && (
-                      <td className="py-2.5 px-3.5 text-right sticky right-0 bg-white group-hover:bg-slate-50 transition-colors z-20 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                      <td className="py-2.5 px-3.5 text-right sticky right-0 bg-white group-hover:bg-slate-50 transition-colors z-10 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setSelectedProspect(p)}
