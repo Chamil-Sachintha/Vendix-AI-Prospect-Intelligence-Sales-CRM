@@ -857,7 +857,8 @@ function ProspectsContent() {
                 return (
                   <tr
                     key={p.id}
-                    className="hover:bg-slate-50/70 transition-colors group"
+                    onClick={() => setSelectedProspect(p)}
+                    className="hover:bg-slate-50/70 transition-colors group cursor-pointer"
                   >
                     {/* 0. Company Logo (Sticky on horizontal scroll) */}
                     {visibleColumns.logo && (
@@ -870,8 +871,11 @@ function ProspectsContent() {
                     {visibleColumns.companyName && (
                       <td className="py-2.5 px-3.5 whitespace-normal break-words leading-snug max-w-[240px]">
                         <button
-                          onClick={() => setSelectedProspect(p)}
-                          className="font-bold text-slate-900 hover:text-[#0033BF] hover:underline text-left text-xs inline-flex flex-wrap items-center gap-1.5"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProspect(p);
+                          }}
+                          className="font-bold text-slate-900 group-hover:text-[#0033BF] hover:underline text-left text-xs inline-flex flex-wrap items-center gap-1.5"
                         >
                           <span>{p.name}</span>
                           {p.slraMember && (
@@ -905,7 +909,8 @@ function ProspectsContent() {
                             href={p.website}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-[#0033BF] hover:underline flex items-center gap-1 text-[11px]"
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-[#0033BF] hover:underline inline-flex items-center gap-1 text-[11px]"
                           >
                             <Globe className="h-3 w-3 shrink-0" />
                             Visit
@@ -944,7 +949,10 @@ function ProspectsContent() {
                     {visibleColumns.decisionMakers && (
                       <td className="py-2.5 px-3.5 whitespace-nowrap">
                         <button
-                          onClick={() => setSelectedProspect(p)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProspect(p);
+                          }}
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 hover:text-[#0033BF] transition-all text-xs font-semibold text-slate-700 group/pill"
                           title="Click to view and manage all decision-makers"
                         >
@@ -960,7 +968,7 @@ function ProspectsContent() {
 
                     {/* 11. Prospect Status (Inline Dropdown) */}
                     {visibleColumns.prospectStatus && (
-                      <td className="py-2.5 px-3.5 whitespace-nowrap">
+                      <td className="py-2.5 px-3.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <select
                           value={p.prospectStatus || "New"}
                           onChange={(e) => handleStatusChange(p.id, e.target.value)}
@@ -1007,7 +1015,10 @@ function ProspectsContent() {
                             </span>
                             {!p.isCompleted && (
                               <button
-                                onClick={() => handleCompleteFollowUp(p.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCompleteFollowUp(p.id);
+                                }}
                                 className="text-slate-400 hover:text-emerald-600 transition-colors"
                                 title="Mark follow-up done"
                               >
@@ -1025,7 +1036,7 @@ function ProspectsContent() {
                     {visibleColumns.notes && (
                       <td className="py-2.5 px-3.5 max-w-[280px] whitespace-normal break-words leading-snug text-slate-600 text-[11px]">
                         {addingNoteId === p.id ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="text"
                               autoFocus
@@ -1055,7 +1066,8 @@ function ProspectsContent() {
                           <div className="flex items-start justify-between group/note gap-1">
                             <span className="whitespace-normal break-words">{p.notes || "-"}</span>
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setAddingNoteId(p.id);
                                 setNewInteractionNote("");
                               }}
@@ -1071,7 +1083,10 @@ function ProspectsContent() {
 
                     {/* 15. Actions */}
                     {visibleColumns.actions && (
-                      <td className="py-2.5 px-3.5 text-right sticky right-0 bg-white group-hover:bg-slate-50 transition-colors z-10 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                      <td
+                        onClick={(e) => e.stopPropagation()}
+                        className="py-2.5 px-3.5 text-right sticky right-0 bg-white group-hover:bg-slate-50 transition-colors z-10 border-l border-slate-200/80 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)]"
+                      >
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => setSelectedProspect(p)}
